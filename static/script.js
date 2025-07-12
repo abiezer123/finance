@@ -252,7 +252,7 @@ async function loadSummaryWithExpenses() {
         return acc + final;
     }, 0);
 
-    document.getElementById("overall-income-total").textContent = `Total Income: ₱${totalIncome.toLocaleString()}`;
+    document.getElementById("overall-income-total").textContent = `Total Givings: ₱${totalIncome.toLocaleString()}`;
     document.getElementById("overall-final-total").textContent = `Total After Expenses: ₱${totalFinal.toLocaleString()}`;
 }
 
