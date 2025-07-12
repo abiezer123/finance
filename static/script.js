@@ -1,171 +1,262 @@
 let entries = {};
 let editIndex = null;
 
+let tableBody;
+let tfoot;
+let modal; // modal element
+let expenseForm;
+
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("offering-form");
-    const tableBody = document.querySelector("#entries-table tbody");
     const dateInput = document.getElementById("entry-date");
     const selectedDateDisplay = document.getElementById("selected-date");
+    const formDateInput = document.getElementById("form-date");
+    modal = document.getElementById("expenses-modal");
+    expenseForm = document.getElementById("expense-form");
+
+    tableBody = document.querySelector("#entries-table tbody");
+    tfoot = document.querySelector("#entries-table tfoot");
 
     const urlParams = new URLSearchParams(window.location.search);
-    const dateFromUrl = urlParams.get("date");
-    const today = new Date().toISOString().split("T")[0];
-    const selectedDate = dateFromUrl || today;
+    const selectedDate = urlParams.get("date") || new Date().toISOString().split("T")[0];
 
     dateInput.value = selectedDate;
-    selectedDateDisplay.textContent = selectedDate;
-    fetchEntries(selectedDate);
+    selectedDateDisplay.textContent = formatDatePretty(selectedDate);
+    if (formDateInput) formDateInput.value = selectedDate;
 
+    dateInput.addEventListener("change", () => {
+        const selectedDate = dateInput.value;
+        selectedDateDisplay.textContent = formatDatePretty(selectedDate);
+        if (formDateInput) formDateInput.value = selectedDate;
+        history.replaceState(null, "", `/?date=${selectedDate}`);
+        fetchAndUpdateTable(selectedDate);
+        loadSummaryWithExpenses();
+    });
 
-    form.addEventListener("submit", async (e) => {
+    fetchAndUpdateTable(selectedDate);
+    loadSummaryWithExpenses();
+
+    // JPG Download
+    document.getElementById("download-jpg").addEventListener("click", async () => {
+        const tableWrapper = document.querySelector(".table-wrapper");
+        if (!tableWrapper) return;
+        tableWrapper.scrollLeft = 0;
+        tableWrapper.style.overflow = "visible";
+
+        const canvas = await html2canvas(tableWrapper, {
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: document.body.scrollWidth,
+            useCORS: true
+        });
+
+        const link = document.createElement("a");
+        const date = dateInput.value;
+        link.download = `Report_${date || 'today'}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg");
+        link.click();
+    });
+
+    // Modal open/close
+    document.getElementById("expenses-button").addEventListener("click", () => {
+        modal.style.display = "block";
+    });
+
+    document.getElementById("close-expenses-modal").addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    window.onclick = e => {
+        if (e.target === modal) modal.style.display = "none";
+    };
+
+    // Handle expense form submit
+    expenseForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        const date = dateInput.value;
-        const rowData = getFormData();
+        const formData = new FormData(expenseForm);
+        const expense = Object.fromEntries(formData.entries());
+        expense.amount = parseFloat(expense.amount);
+        expense.date = document.getElementById("entry-date").value;
 
-        const formData = new FormData();
-        formData.append("date", date);
-        for (const key in rowData) {
-            formData.append(key === "otherLabel" ? "others_label" : key, rowData[key]);
+        try {
+            const res = await fetch("/add-expense", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(expense)
+            });
+
+            if (res.ok) {
+                modal.style.display = "none";
+                expenseForm.reset();
+                fetchAndUpdateTable(expense.date);
+                loadSummaryWithExpenses();
+            } else {
+                alert("Failed to add expense.");
+            }
+        } catch (err) {
+            console.error("Expense add error:", err);
         }
-
-        const res = await fetch("/", {
-            method: "POST",
-            body: formData,
-        });
-
-        if (res.redirected) {
-            window.location.href = res.url;  // reload with selected date
-        } else {
-            fetchEntries(date);
-        }
-
-        form.reset();
     });
+});
 
-    document.getElementById("download-btn").addEventListener("click", () => {
-        const date = dateInput.value;
-        if (!entries[date] || entries[date].length === 0) {
-            alert("No data to download for this date.");
-            return;
-        }
-
-        let csv = "Name,Tithes,Offering,SFC,FP,PH,HOR,SOC,Others Label,Others\n";
-        entries[date].forEach(row => {
-            csv += `${row.name},${row.tithes},${row.offering},${row.sfc},${row.fp},${row.ph},${row.hor},${row.soc},${row.others_label},${row.others}\n`;
-        });
-
-        const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${date}_offerings.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    async function fetchEntries(date) {
+// Fetch and update table
+async function fetchAndUpdateTable(date) {
+    try {
         const res = await fetch(`/api/entries?date=${date}`);
         const data = await res.json();
         entries[date] = data;
-        updateTable(date);
+        updateTable(data);
+    } catch (err) {
+        console.error("Error fetching entries:", err);
     }
-
-    function updateTable(date) {
-        const tableData = entries[date] || [];
-        tableBody.innerHTML = "";
-
-        let totals = {
-            tithes: 0, offering: 0, sfc: 0, fp: 0,
-            ph: 0, hor: 0, soc: 0, others: 0
-        };
-
-        tableData.forEach((row, index) => {
-            totals.tithes += row.tithes;
-            totals.offering += row.offering;
-            totals.sfc += row.sfc;
-            totals.fp += row.fp;
-            totals.ph += row.ph;
-            totals.hor += row.hor;
-            totals.soc += row.soc;
-            totals.others += row.others;
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${row.name}</td>
-                <td>${row.tithes}</td>
-                <td>${row.offering}</td>
-                <td>${row.sfc}</td>
-                <td>${row.fp}</td>
-                <td>${row.ph}</td>
-                <td>${row.hor}</td>
-                <td>${row.soc}</td>
-                <td>${row.others} (${row.others_label || "N/A"})</td>
-                <td>
-                    <button onclick="editEntry(${index})">Edit</button>
-                    <button onclick="deleteEntry(${index})">Delete</button>
-                </td>
-            `;
-            tableBody.appendChild(tr);
-        });
-
-        document.getElementById("total-tithes").textContent = totals.tithes;
-        document.getElementById("total-offering").textContent = totals.offering;
-        document.getElementById("total-sfc").textContent = totals.sfc;
-        document.getElementById("total-fp").textContent = totals.fp;
-        document.getElementById("total-ph").textContent = totals.ph;
-        document.getElementById("total-hor").textContent = totals.hor;
-        document.getElementById("total-soc").textContent = totals.soc;
-        document.getElementById("total-others").textContent = totals.others;
-    }
-});
-
-function getFormData() {
-    return {
-        name: document.getElementById("name").value.trim(),
-        tithes: +document.getElementById("tithes").value || 0,
-        offering: +document.getElementById("offering").value || 0,
-        sfc: +document.getElementById("sfc").value || 0,
-        fp: +document.getElementById("fp").value || 0,
-        ph: +document.getElementById("ph").value || 0,
-        hor: +document.getElementById("hor").value || 0,
-        soc: +document.getElementById("soc").value || 0,
-        others: +document.getElementById("others").value || 0,
-        otherLabel: document.getElementById("other-label").value.trim(),
-    };
 }
-const tfoot = document.querySelector("#entries-table tfoot");
-tfoot.innerHTML = `
-    <tr>
-        <td colspan="2"><strong>Totals:</strong></td>
-        <td>${totals.tithes}</td>
-        <td>${totals.offering}</td>
-        <td>${totals.sfc}</td>
-        <td>${totals.fp}</td>
-        <td>${totals.ph}</td>
-        <td>${totals.hor}</td>
-        <td>${totals.soc}</td>
-        <td>${totals.others}</td>
-        <td></td>
-    </tr>
-`;
-document.getElementById("download-jpg").addEventListener("click", async () => {
-    const tableWrapper = document.querySelector(".table-wrapper");
-    if (!tableWrapper) return;
 
-    tableWrapper.scrollLeft = 0;  // ensure full scroll area is visible
-    tableWrapper.style.overflow = "visible"; // make sure nothing is hidden
+// Update the table
+function updateTable(data) {
+    if (!tableBody || !tfoot) return;
 
-    const canvas = await html2canvas(tableWrapper, {
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: document.body.scrollWidth,
-        useCORS: true
+    tableBody.innerHTML = "";
+
+    const totals = {
+        tithes: 0, offering: 0, sfc: 0, fp: 0,
+        ph: 0, hor: 0, soc: 0, others: 0
+    };
+
+    data.forEach((row, index) => {
+        totals.tithes += row.tithes || 0;
+        totals.offering += row.offering || 0;
+        totals.sfc += row.sfc || 0;
+        totals.fp += row.fp || 0;
+        totals.ph += row.ph || 0;
+        totals.hor += row.hor || 0;
+        totals.soc += row.soc || 0;
+        totals.others += row.others || 0;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${row.name}</td>
+            <td>${row.tithes}</td>
+            <td>${row.offering}</td>
+            <td>${row.sfc}</td>
+            <td>${row.fp}</td>
+            <td>${row.ph}</td>
+            <td>${row.hor}</td>
+            <td>${row.soc}</td>
+            <td>${row.others} (${row.others_label || "N/A"})</td>
+            <td><button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button></td>
+
+        `;
+        tableBody.appendChild(tr);
     });
 
-    const link = document.createElement("a");
+    tfoot.innerHTML = `
+        <tr>
+            <td colspan="2"><strong>Totals:</strong></td>
+            <td>${totals.tithes}</td>
+            <td>${totals.offering}</td>
+            <td>${totals.sfc}</td>
+            <td>${totals.fp}</td>
+            <td>${totals.ph}</td>
+            <td>${totals.hor}</td>
+            <td>${totals.soc}</td>
+            <td>${totals.others}</td>
+            <td></td>
+        </tr>
+    `;
+}
+
+// Delete logic
+function confirmDelete(index) {
+    const selectedDate = document.getElementById("entry-date").value;
+    const entry = entries[selectedDate][index];
+    if (!entry || !entry._id) return;
+
+    const confirmed = confirm(`Delete entry: ${entry.name}?`);
+    if (!confirmed) return;
+
+    fetch(`/delete/${entry._id}`)
+        .then(() => fetchAndUpdateTable(selectedDate))
+        .catch(err => console.error("Delete error:", err));
+}
+
+function formatDatePretty(dateString) {
+    const date = new Date(dateString);
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return date.toLocaleDateString("en-US", options);
+}
+
+// Load summary and expenses table
+async function loadSummaryWithExpenses() {
     const date = document.getElementById("entry-date").value;
-    link.download = `Report_${date || 'today'}.jpg`;
-    link.href = canvas.toDataURL("image/jpeg");
-    link.click();
-});
+    const [entriesRes, expensesRes] = await Promise.all([
+        fetch(`/api/entries?date=${date}`),
+        fetch(`/api/expenses?date=${date}`)
+    ]);
+    const entries = await entriesRes.json();
+    const expenses = await expensesRes.json();
+
+    const categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others"];
+    const summaryBody = document.getElementById("summary-body");
+    summaryBody.innerHTML = "";
+
+    // Original Totals row
+    let originalTotals = {};
+    let totalRow = `<tr><td>-</td><td><b>Original Total</b></td>`;
+    categories.forEach(cat => {
+        const sum = entries.reduce((a, e) => a + (parseFloat(e[cat]) || 0), 0);
+        originalTotals[cat] = sum;
+        totalRow += `<td><b>${sum}</b></td>`;
+    });
+    totalRow += `<td>-</td></tr>`;
+    summaryBody.innerHTML += totalRow;
+
+    // Expense rows
+    expenses.forEach((e, i) => {
+        let row = `<tr><td>${i + 1}</td><td>Expense</td>`;
+        categories.forEach(cat => {
+            if (cat === e.from) {
+                row += `<td>${parseFloat(e.amount).toFixed(2)} (${e.label})</td>`;
+            } else {
+                row += `<td></td>`;
+            }
+        });
+        const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Delete</button>`;
+        row += `<td>${deleteBtn}</td></tr>`;
+        summaryBody.innerHTML += row;
+
+    });
+
+    // After-expense totals
+    let finalRow = `<tr><td>-</td><td><b>After Expenses</b></td>`;
+    const expenseTotals = {};
+    categories.forEach(c => expenseTotals[c] = 0);
+    expenses.forEach(e => {
+        if (expenseTotals[e.from] !== undefined) {
+            expenseTotals[e.from] += parseFloat(e.amount) || 0;
+        }
+    });
+    categories.forEach(cat => {
+        finalRow += `<td><b>${originalTotals[cat] - expenseTotals[cat]}</b></td>`;
+    });
+    finalRow += `<td>-</td></tr>`;
+    summaryBody.innerHTML += finalRow;
+}
+
+function deleteExpense(id) {
+    const confirmed = confirm("Are you sure you want to delete this expense?");
+    if (!confirmed) return;
+
+    fetch(`/delete-expense/${id}`, {
+        method: "DELETE"
+    })
+        .then(res => {
+            if (res.ok) {
+                loadSummaryWithExpenses();
+            } else {
+                alert("Failed to delete expense.");
+            }
+        })
+        .catch(err => {
+            console.error("Error deleting expense:", err);
+        });
+}

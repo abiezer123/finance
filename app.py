@@ -12,7 +12,15 @@ mongo = PyMongo(app)
 # Make sure this runs without error
 print("MongoDB connection successful:", mongo.db)
 
+def get_int(value):
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return 0
+
 @app.route("/", methods=["GET", "POST"])
+
+    
 def index():
     selected_date = request.args.get("date") or datetime.today().strftime("%Y-%m-%d")
 
@@ -20,33 +28,48 @@ def index():
         data = {
             "date": request.form["date"],
             "name": request.form["name"],
-            "tithes": int(request.form.get("tithes", 0)),
-            "offering": int(request.form.get("offering", 0)),
-            "sfc": int(request.form.get("sfc", 0)),
-            "fp": int(request.form.get("fp", 0)),
-            "ph": int(request.form.get("ph", 0)),
-            "hor": int(request.form.get("hor", 0)),
-            "soc": int(request.form.get("soc", 0)),
-            "others": int(request.form.get("others", 0)),
+            "tithes": get_int(request.form.get("tithes")),
+            "offering": get_int(request.form.get("offering")),
+            "sfc": get_int(request.form.get("sfc")),
+            "fp": get_int(request.form.get("fp")),
+            "ph": get_int(request.form.get("ph")),
+            "hor": get_int(request.form.get("hor")),
+            "soc": get_int(request.form.get("soc")),
+            "others": get_int(request.form.get("others")),
             "others_label": request.form.get("others_label", "")
         }
         mongo.db.entries.insert_one(data)
         return redirect(url_for("index", date=data["date"]))
 
     entries = list(mongo.db.entries.find({"date": selected_date}))
+    expenses = list(mongo.db.expenses.find({"date": selected_date}))
+    for e in expenses:
+        e["_id"] = str(e["_id"])
 
-    totals = {
-        "tithes": sum(e.get("tithes", 0) for e in entries),
-        "offering": sum(e.get("offering", 0) for e in entries),
-        "sfc": sum(e.get("sfc", 0) for e in entries),
-        "fp": sum(e.get("fp", 0) for e in entries),
-        "ph": sum(e.get("ph", 0) for e in entries),
-        "hor": sum(e.get("hor", 0) for e in entries),
-        "soc": sum(e.get("soc", 0) for e in entries),
-        "others": sum(e.get("others", 0) for e in entries)
-    }
+    # Compute original totals
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others"]
+    original_totals = {cat: sum(e.get(cat, 0) for e in entries) for cat in categories}
 
-    return render_template("index.html", entries=entries, date=selected_date, totals=totals)
+    # Compute expenses per category
+    expense_totals = {cat: 0 for cat in categories}
+    for e in expenses:
+        category = e.get("from")
+        amount = float(e.get("amount", 0))
+        if category in expense_totals:
+            expense_totals[category] += amount
+
+    # Compute adjusted totals
+    adjusted_totals = {cat: original_totals[cat] - expense_totals[cat] for cat in categories}
+
+    return render_template("index.html",
+        date=selected_date,
+        entries=entries,
+        expenses=expenses,
+        original_totals=original_totals,
+        expense_totals=expense_totals,
+        adjusted_totals=adjusted_totals
+    )
+
 
 @app.route("/delete/<id>")
 def delete(id):
@@ -111,6 +134,35 @@ def api_entries():
     for e in entries:
         e["_id"] = str(e["_id"])  # Convert ObjectId to string
     return jsonify(entries)
+
+@app.route("/add-expense", methods=["POST"])
+def add_expense():
+    data = request.get_json()
+    if not data:
+        return "Invalid request", 400
+
+    # Save the expense record to its own collection
+    mongo.db.expenses.insert_one(data)
+
+    return jsonify({"success": True})
+
+
+@app.route("/api/expenses", methods=["GET"])
+def get_expenses():
+    date = request.args.get("date")
+    expenses = list(mongo.db.expenses.find({"date": date}))
+    for e in expenses:
+        e["_id"] = str(e["_id"])
+    return jsonify(expenses)
+
+
+@app.route("/delete-expense/<id>", methods=["DELETE"])
+def delete_expense(id):
+    try:
+        mongo.db.expenses.delete_one({"_id": ObjectId(id)})
+        return jsonify({"message": "Deleted"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

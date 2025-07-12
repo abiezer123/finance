@@ -4,22 +4,24 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EmpireTrack - Offerings Tracker</title>
+    <title>Empire</title>
     <link rel="stylesheet" href="/static/styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="/static/script.js"></script>
+
 </head>
 
 <body>
     <nav class="navbar">
         <div class="nav-left">
-            <div class="navbar-brand">EmpireTrack</div>
+            <div class="navbar-brand"> EMPIRE</div>
             <input type="checkbox" id="nav-toggle" class="nav-toggle" />
             <label for="nav-toggle" class="nav-toggle-label">
                 <span></span><span></span><span></span>
             </label>
         </div>
         <ul class="navbar-links">
-            <li><a href="/" class="active">Tracker</a></li>
+            <li><a href="/" class="active">=</a></li>
         </ul>
     </nav>
 
@@ -27,26 +29,9 @@
         <h2>Offerings Tracker</h2>
 
         <label for="entry-date">Select Date:</label>
-        <input type="date" id="entry-date" required>
-
-        <form id="offering-form" method="POST" action="/">
-            <input type="hidden" name="date" id="form-date">
-            <input type="text" name="name" id="name" placeholder="Name" required>
-            <input type="number" name="tithes" id="tithes" placeholder="Tithes" required>
-            <input type="number" name="offering" id="offering" placeholder="Offering" required>
-            <input type="number" name="sfc" id="sfc" placeholder="SFC" required>
-            <input type="number" name="fp" id="fp" placeholder="FP" required>
-            <input type="number" name="ph" id="ph" placeholder="PH" required>
-            <input type="number" name="hor" id="hor" placeholder="HOR" required>
-            <input type="number" name="soc" id="soc" placeholder="SOC" required>
-            <input type="number" name="others" id="others" placeholder="Others Amount">
-            <input type="text" name="others_label" id="other-label" placeholder="Other Label">
-            <button type="submit">Add Entry</button>
-        </form>
-
+        <input type="date" id="entry-date" required value="{{ date }}">
         <hr>
-
-        <h3>Entries for <span id="selected-date">{{ date }}</span></h3>
+        <h3>Entries for <span id="selected-date"></span></h3>
         <div class="table-wrapper">
             <table id="entries-table">
                 <thead>
@@ -85,20 +70,96 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="2"><strong>Totals:</strong></td>
-                        <td>{{ totals.tithes }}</td>
-                        <td>{{ totals.offering }}</td>
-                        <td>{{ totals.sfc }}</td>
-                        <td>{{ totals.fp }}</td>
-                        <td>{{ totals.ph }}</td>
-                        <td>{{ totals.hor }}</td>
-                        <td>{{ totals.soc }}</td>
-                        <td>{{ totals.others }}</td>
+                        <td>{{ original_totals.tithes }}</td>
+                        <td>{{ original_totals.offering }}</td>
+                        <td>{{ original_totals.sfc }}</td>
+                        <td>{{ original_totals.fp }}</td>
+                        <td>{{ original_totals.ph }}</td>
+                        <td>{{ original_totals.hor }}</td>
+                        <td>{{ original_totals.soc }}</td>
+                        <td>{{ original_totals.others }}</td>
+
                         <td></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
+
+        <hr>
+        <button id="expenses-button"
+            style="background-color: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+            Add Expense
+        </button>
+        <!-- Unified Summary & Expenses Table -->
+        <div class="table-wrapper">
+            <table id="summary-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Tithes</th>
+                        <th>Offering</th>
+                        <th>SFC</th>
+                        <th>FP</th>
+                        <th>PH</th>
+                        <th>HOR</th>
+                        <th>SOC</th>
+                        <th>Others</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="summary-body">
+                    <!-- Dynamically filled rows -->
+                </tbody>
+            </table>
+        </div>
+
+
+        <form id="offering-form" method="POST" action="/">
+            <input type="hidden" name="date" id="form-date">
+            <input type="text" name="name" id="name" placeholder="Name">
+            <input type="number" name="tithes" id="tithes" placeholder="Tithes">
+            <input type="number" name="offering" id="offering" placeholder="Offering">
+            <input type="number" name="sfc" id="sfc" placeholder="SFC">
+            <input type="number" name="fp" id="fp" placeholder="FP">
+            <input type="number" name="ph" id="ph" placeholder="PH">
+            <input type="number" name="hor" id="hor" placeholder="HOR">
+            <input type="number" name="soc" id="soc" placeholder="SOC">
+            <input type="number" name="others" id="others" placeholder="Others Amount">
+            <input type="text" name="others_label" id="other-label" placeholder="Other Label">
+            <button type="submit">Add Entry</button>
+        </form>
+
+        <!-- Expense Modal -->
+        <div id="expenses-modal" class="modal-overlay">
+            <div class="modal-content">
+                <span class="modal-close" id="close-expenses-modal">&times;</span>
+                <h3>Add Expense</h3>
+                <form id="expense-form">
+                    <label>Amount:</label>
+                    <input type="number" name="amount" required><br>
+                    <label>Label:</label>
+                    <input type="text" name="label" required><br>
+                    <label>Deduct from:</label>
+                    <select name="from" required>
+                        <option value="tithes">Tithes</option>
+                        <option value="offering">Offering</option>
+                        <option value="sfc">SFC</option>
+                        <option value="fp">FP</option>
+                        <option value="ph">PH</option>
+                        <option value="hor">HOR</option>
+                        <option value="soc">SOC</option>
+                        <option value="others">Others</option>
+                    </select><br><br>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+
+
+
+        <hr>
+
 
         <div class="download-options">
             <button id="download-excel">Download Excel</button>
@@ -106,39 +167,10 @@
         </div>
     </main>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const dateInput = document.getElementById("entry-date");
-            const selectedDateDisplay = document.getElementById("selected-date");
-            const formDateInput = document.getElementById("form-date");
-
-            const today = new Date().toISOString().split("T")[0];
-            dateInput.value = today;
-            selectedDateDisplay.textContent = today;
-            formDateInput.value = today;
-
-            dateInput.addEventListener("change", () => {
-                selectedDateDisplay.textContent = dateInput.value;
-                formDateInput.value = dateInput.value;
-                window.location.href = `/?date=${dateInput.value}`;
-            });
-
-            document.getElementById("download-excel").addEventListener("click", () => {
-                const date = dateInput.value;
-                if (!date) return alert("Please select a date.");
-                window.location.href = `/download/${date}`;
-            });
-
-            document.getElementById("download-jpg").addEventListener("click", async () => {
-                const wrapper = document.querySelector(".table-wrapper");
-                const canvas = await html2canvas(wrapper);
-                const link = document.createElement("a");
-                link.download = `Report_${dateInput.value}.jpg`;
-                link.href = canvas.toDataURL("image/jpeg");
-                link.click();
-            });
-        });
+    <script id="summary-data" type="application/json">
+    {{ {"original_totals": original_totals} | tojson }}
     </script>
+
 </body>
 
 </html>
