@@ -135,20 +135,20 @@ function updateTable(data) {
         tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${row.name}</td>
-            <td>${row.tithes}</td>
-            <td>${row.offering}</td>
-            <td>${row.sfc}</td>
-            <td>${row.fp}</td>
-            <td>${row.ph}</td>
-            <td>${row.hor}</td>
-            <td>${row.soc}</td>
-            <td>${row.others} (${row.others_label || "N/A"})</td>
+            <td>${row.tithes || ""}</td>
+            <td>${row.offering || ""}</td>
+            <td>${row.sfc || ""}</td>
+            <td>${row.fp || ""}</td>
+            <td>${row.ph || ""}</td>
+            <td>${row.hor || ""}</td>
+            <td>${row.soc || ""}</td>
+            <td>${row.others ? row.others + ` (${row.others_label || "N/A"})` : ""}</td>
             <td><button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button></td>
-
         `;
         tableBody.appendChild(tr);
     });
 
+    // Totals row
     tfoot.innerHTML = `
         <tr>
             <td colspan="2"><strong>Totals:</strong></td>
@@ -163,6 +163,9 @@ function updateTable(data) {
             <td></td>
         </tr>
     `;
+
+    const totalIncome = Object.values(totals).reduce((sum, val) => sum + val, 0);
+    document.getElementById("overall-income-total").textContent = `Overall: ₱${totalIncome.toLocaleString()}`;
 }
 
 // Delete logic
@@ -175,7 +178,10 @@ function confirmDelete(index) {
     if (!confirmed) return;
 
     fetch(`/delete/${entry._id}`)
-        .then(() => fetchAndUpdateTable(selectedDate))
+        .then(() => {
+            fetchAndUpdateTable(selectedDate);
+            loadSummaryWithExpenses();
+        })
         .catch(err => console.error("Delete error:", err));
 }
 
@@ -223,7 +229,6 @@ async function loadSummaryWithExpenses() {
         const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Delete</button>`;
         row += `<td>${deleteBtn}</td></tr>`;
         summaryBody.innerHTML += row;
-
     });
 
     // After-expense totals
@@ -240,8 +245,18 @@ async function loadSummaryWithExpenses() {
     });
     finalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += finalRow;
+
+    const totalIncome = Object.values(originalTotals).reduce((sum, val) => sum + val, 0);
+    const totalFinal = categories.reduce((acc, cat) => {
+        const final = originalTotals[cat] - expenseTotals[cat];
+        return acc + final;
+    }, 0);
+
+    document.getElementById("overall-income-total").textContent = `Total Income: ₱${totalIncome.toLocaleString()}`;
+    document.getElementById("overall-final-total").textContent = `Total After Expenses: ₱${totalFinal.toLocaleString()}`;
 }
 
+// Delete expense
 function deleteExpense(id) {
     const confirmed = confirm("Are you sure you want to delete this expense?");
     if (!confirmed) return;
