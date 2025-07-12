@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EmpireTrack - Offerings Tracker</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="navbar-brand">EmpireTrack</div>
+            <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+            <label for="nav-toggle" class="nav-toggle-label">
+                <span></span><span></span><span></span>
+            </label>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/" class="active">Tracker</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h2>Offerings Tracker</h2>
+
+        <label for="entry-date">Select Date:</label>
+        <input type="date" id="entry-date" required>
+
+        <form id="offering-form" method="POST" action="/">
+            <input type="hidden" name="date" id="form-date">
+            <input type="text" name="name" id="name" placeholder="Name" required>
+            <input type="number" name="tithes" id="tithes" placeholder="Tithes" required>
+            <input type="number" name="offering" id="offering" placeholder="Offering" required>
+            <input type="number" name="sfc" id="sfc" placeholder="SFC" required>
+            <input type="number" name="fp" id="fp" placeholder="FP" required>
+            <input type="number" name="ph" id="ph" placeholder="PH" required>
+            <input type="number" name="hor" id="hor" placeholder="HOR" required>
+            <input type="number" name="soc" id="soc" placeholder="SOC" required>
+            <input type="number" name="others" id="others" placeholder="Others Amount">
+            <input type="text" name="others_label" id="other-label" placeholder="Other Label">
+            <button type="submit">Add Entry</button>
+        </form>
+
+        <hr>
+
+        <h3>Entries for <span id="selected-date">{{ date }}</span></h3>
+        <div class="table-wrapper">
+            <table id="entries-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Tithes</th>
+                        <th>Offering</th>
+                        <th>SFC</th>
+                        <th>FP</th>
+                        <th>PH</th>
+                        <th>HOR</th>
+                        <th>SOC</th>
+                        <th>Others</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ entry.name }}</td>
+                        <td>{{ entry.tithes }}</td>
+                        <td>{{ entry.offering }}</td>
+                        <td>{{ entry.sfc }}</td>
+                        <td>{{ entry.fp }}</td>
+                        <td>{{ entry.ph }}</td>
+                        <td>{{ entry.hor }}</td>
+                        <td>{{ entry.soc }}</td>
+                        <td>{{ entry.others }} ({{ entry.others_label or 'N/A' }})</td>
+                        <td>
+                            <!-- Edit/Delete buttons can be added here -->
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2"><strong>Totals:</strong></td>
+                        <td>{{ totals.tithes }}</td>
+                        <td>{{ totals.offering }}</td>
+                        <td>{{ totals.sfc }}</td>
+                        <td>{{ totals.fp }}</td>
+                        <td>{{ totals.ph }}</td>
+                        <td>{{ totals.hor }}</td>
+                        <td>{{ totals.soc }}</td>
+                        <td>{{ totals.others }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="download-options">
+            <button id="download-excel">Download Excel</button>
+            <button id="download-jpg">Download JPG</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const dateInput = document.getElementById("entry-date");
+            const selectedDateDisplay = document.getElementById("selected-date");
+            const formDateInput = document.getElementById("form-date");
+
+            const today = new Date().toISOString().split("T")[0];
+            dateInput.value = today;
+            selectedDateDisplay.textContent = today;
+            formDateInput.value = today;
+
+            dateInput.addEventListener("change", () => {
+                selectedDateDisplay.textContent = dateInput.value;
+                formDateInput.value = dateInput.value;
+                window.location.href = `/?date=${dateInput.value}`;
+            });
+
+            document.getElementById("download-excel").addEventListener("click", () => {
+                const date = dateInput.value;
+                if (!date) return alert("Please select a date.");
+                window.location.href = `/download/${date}`;
+            });
+
+            document.getElementById("download-jpg").addEventListener("click", async () => {
+                const wrapper = document.querySelector(".table-wrapper");
+                const canvas = await html2canvas(wrapper);
+                const link = document.createElement("a");
+                link.download = `Report_${dateInput.value}.jpg`;
+                link.href = canvas.toDataURL("image/jpeg");
+                link.click();
+            });
+        });
+    </script>
+</body>
+
+</html>

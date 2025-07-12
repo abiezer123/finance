@@ -1,0 +1,264 @@
+/* Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(250deg, #3498db, white);
+    color: #333;
+    padding: 20px;
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
+}
+
+html {
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
+}
+
+/* Navbar */
+.navbar {
+    background-color: rgba(31, 42, 64, 0.85);
+    backdrop-filter: blur(12px);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 20px;
+    margin: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #f1c40f;
+}
+
+.nav-toggle {
+    display: none;
+}
+
+.nav-toggle-label {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.nav-toggle-label span {
+    width: 25px;
+    height: 3px;
+    background-color: white;
+    margin: 4px 0;
+    border-radius: 2px;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+.navbar-links li a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.navbar-links li a.active {
+    background-color: #f1c40f;
+    color: #1f2a40;
+}
+
+.navbar-links li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Navbar */
+@media (max-width: 768px) {
+    .nav-toggle-label {
+        display: flex;
+    }
+
+    .navbar-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1rem;
+        background-color: rgba(31, 42, 64, 0.95);
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .nav-toggle:checked+.nav-toggle-label+.navbar-links {
+        display: flex;
+    }
+
+    .navbar-links li {
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+}
+
+/* Main Content */
+main {
+    max-width: 1000px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+h2,
+h3 {
+    color: #34495e;
+    margin-bottom: 10px;
+}
+
+form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+input,
+button,
+select {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+}
+
+input:focus,
+select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    transition: background 0.3s ease;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+thead {
+    background-color: #3498db;
+    color: white;
+}
+
+th,
+td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+tfoot {
+    background-color: #f4f6f8;
+    font-weight: bold;
+}
+
+hr {
+    margin: 2rem 0;
+}
+
+#download-btn {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    form {
+        grid-template-columns: 1fr;
+    }
+
+    input,
+    button,
+    select {
+        font-size: 0.95rem;
+    }
+
+    table,
+    th,
+    td {
+        font-size: 0.85rem;
+    }
+
+    h2,
+    h3 {
+        text-align: center;
+    }
+}
+
+.download-options {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.download-options button {
+    flex: 1;
+    min-width: 150px;
+}
+
+
+.table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
