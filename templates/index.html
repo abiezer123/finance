@@ -27,11 +27,8 @@
 
     <main>
 
-
-        <label for="entry-date">Select Date:</label>
-        <input type="date" id="entry-date" required value="{{ date }}">
-        <hr>
         <h3 id="alltime-cash" style="margin-bottom: 10px;">Cash on Hand: ₱0.00</h3>
+        <br>
         <!-- Cash Summary Modal -->
         <div id="summary-modal" class="modal-overlay">
             <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
@@ -59,9 +56,12 @@
             </button>
         </div>
 
-
-
         <hr>
+        <label for="entry-date">Select Date:</label>
+        <input type="date" id="entry-date" required value="{{ date }}">
+
+        <br><br>
+
         <h3>Entries for <span id="selected-date"></span></h3>
         <div class="table-wrapper">
             <table id="entries-table">
@@ -172,7 +172,8 @@
             <input type="number" name="for_visitor" id="for_visitor" placeholder="For Visitor">
             <input type="number" name="others" id="others" placeholder="Others Amount">
             <input type="text" name="others_label" id="other-label" placeholder="Other Label">
-            <button type="submit">Add Entry</button>
+            <button type="submit" style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">Add
+                Entry</button>
         </form>
 
         <!-- Expense Modal -->
