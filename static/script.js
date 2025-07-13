@@ -1,6 +1,12 @@
 let entries = {};
 let editIndex = null;
 
+const categories = [
+    "tithes", "offering", "sfc", "fp", "ph", "hor",
+    "soc", "sundayschool", "for_visitor", "others"
+];
+
+
 let tableBody;
 let tfoot;
 let modal; // modal element
@@ -118,8 +124,10 @@ function updateTable(data) {
 
     const totals = {
         tithes: 0, offering: 0, sfc: 0, fp: 0,
-        ph: 0, hor: 0, soc: 0, others: 0
+        ph: 0, hor: 0, soc: 0, others: 0,
+        sundayschool: 0, for_visitor: 0
     };
+
 
     data.forEach((row, index) => {
         totals.tithes += row.tithes || 0;
@@ -142,6 +150,8 @@ function updateTable(data) {
             <td>${row.ph || ""}</td>
             <td>${row.hor || ""}</td>
             <td>${row.soc || ""}</td>
+            <td>${row.sundayschool || ""}</td>
+            <td>${row.for_visitor || ""}</td>
             <td>${row.others ? row.others + ` (${row.others_label || "N/A"})` : ""}</td>
             <td><button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button></td>
         `;
@@ -159,6 +169,8 @@ function updateTable(data) {
             <td>${totals.ph}</td>
             <td>${totals.hor}</td>
             <td>${totals.soc}</td>
+            <td>${totals.sundayschool}</td>
+            <td>${totals.for_visitor}</td>
             <td>${totals.others}</td>
             <td></td>
         </tr>
@@ -201,23 +213,30 @@ async function loadSummaryWithExpenses() {
     const entries = await entriesRes.json();
     const expenses = await expensesRes.json();
 
-    const categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others"];
     const summaryBody = document.getElementById("summary-body");
     summaryBody.innerHTML = "";
 
-    // Original Totals row
-    let originalTotals = {};
+    const originalTotals = {};
+    const expenseTotals = {};
+    categories.forEach(cat => {
+        originalTotals[cat] = entries.reduce((sum, e) => sum + (parseFloat(e[cat]) || 0), 0);
+        expenseTotals[cat] = 0;
+    });
+
+    // Original total row
     let totalRow = `<tr><td>-</td><td><b>Original Total</b></td>`;
     categories.forEach(cat => {
-        const sum = entries.reduce((a, e) => a + (parseFloat(e[cat]) || 0), 0);
-        originalTotals[cat] = sum;
-        totalRow += `<td><b>${sum}</b></td>`;
+        totalRow += `<td><b>${originalTotals[cat]}</b></td>`;
     });
     totalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += totalRow;
 
     // Expense rows
     expenses.forEach((e, i) => {
+        if (expenseTotals[e.from] !== undefined) {
+            expenseTotals[e.from] += parseFloat(e.amount) || 0;
+        }
+
         let row = `<tr><td>${i + 1}</td><td>Expense</td>`;
         categories.forEach(cat => {
             if (cat === e.from) {
@@ -231,15 +250,16 @@ async function loadSummaryWithExpenses() {
         summaryBody.innerHTML += row;
     });
 
-    // After-expense totals
-    let finalRow = `<tr><td>-</td><td><b>After Expenses</b></td>`;
-    const expenseTotals = {};
-    categories.forEach(c => expenseTotals[c] = 0);
-    expenses.forEach(e => {
-        if (expenseTotals[e.from] !== undefined) {
-            expenseTotals[e.from] += parseFloat(e.amount) || 0;
-        }
+    // Total Expenses row
+    let expenseTotalRow = `<tr><td>-</td><td><b>Total Expenses</b></td>`;
+    categories.forEach(cat => {
+        expenseTotalRow += `<td><b>${expenseTotals[cat]}</b></td>`;
     });
+    expenseTotalRow += `<td>-</td></tr>`;
+    summaryBody.innerHTML += expenseTotalRow;
+
+    // Final cash on hand row
+    let finalRow = `<tr><td>-</td><td><b>Cash on Hand</b></td>`;
     categories.forEach(cat => {
         finalRow += `<td><b>${originalTotals[cat] - expenseTotals[cat]}</b></td>`;
     });
@@ -247,14 +267,12 @@ async function loadSummaryWithExpenses() {
     summaryBody.innerHTML += finalRow;
 
     const totalIncome = Object.values(originalTotals).reduce((sum, val) => sum + val, 0);
-    const totalFinal = categories.reduce((acc, cat) => {
-        const final = originalTotals[cat] - expenseTotals[cat];
-        return acc + final;
-    }, 0);
+    const totalFinal = categories.reduce((acc, cat) => acc + (originalTotals[cat] - expenseTotals[cat]), 0);
 
     document.getElementById("overall-income-total").textContent = `Total Givings: ₱${totalIncome.toLocaleString()}`;
     document.getElementById("overall-final-total").textContent = `Total After Expenses: ₱${totalFinal.toLocaleString()}`;
 }
+
 
 // Delete expense
 function deleteExpense(id) {

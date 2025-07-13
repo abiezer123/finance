@@ -45,6 +45,8 @@
                         <th>PH</th>
                         <th>HOR</th>
                         <th>SOC</th>
+                        <th>Sunday School</th>
+                        <th>For Visitor</th>
                         <th>Others</th>
                         <th>Actions</th>
                     </tr>
@@ -70,6 +72,8 @@
                 </tbody>
                 <tfoot>
                     <tr>
+                        <td><strong>Totals:</strong></td>
+                        <td></td>
                         <td>{{ original_totals.tithes }}</td>
                         <td>{{ original_totals.offering }}</td>
                         <td>{{ original_totals.sfc }}</td>
@@ -77,11 +81,13 @@
                         <td>{{ original_totals.ph }}</td>
                         <td>{{ original_totals.hor }}</td>
                         <td>{{ original_totals.soc }}</td>
+                        <td>{{ original_totals.sundayschool }}</td>
+                        <td>{{ original_totals.for_visitor }}</td>
                         <td>{{ original_totals.others }}</td>
-
                         <td></td>
                     </tr>
                 </tfoot>
+
             </table>
         </div>
         <br>
@@ -106,6 +112,8 @@
                         <th>PH</th>
                         <th>HOR</th>
                         <th>SOC</th>
+                        <th>Sunday School</th>
+                        <th>For Visitor</th>
                         <th>Others</th>
                         <th></th>
                     </tr>
@@ -129,6 +137,8 @@
             <input type="number" name="ph" id="ph" placeholder="PH">
             <input type="number" name="hor" id="hor" placeholder="HOR">
             <input type="number" name="soc" id="soc" placeholder="SOC">
+            <input type="number" name="sundayschool" id="sundayschool" placeholder="Sunday School">
+            <input type="number" name="for_visitor" id="for_visitor" placeholder="For Visitor">
             <input type="number" name="others" id="others" placeholder="Others Amount">
             <input type="text" name="others_label" id="other-label" placeholder="Other Label">
             <button type="submit">Add Entry</button>
@@ -153,6 +163,8 @@
                         <option value="ph">PH</option>
                         <option value="hor">HOR</option>
                         <option value="soc">SOC</option>
+                        <option value="sundayschool">Sunday School</option>
+                        <option value="for_visitor">For Visitor</option>
                         <option value="others">Others</option>
                     </select><br><br>
                     <button type="submit">Submit</button>

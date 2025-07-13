@@ -36,8 +36,11 @@ def index():
             "hor": get_int(request.form.get("hor")),
             "soc": get_int(request.form.get("soc")),
             "others": get_int(request.form.get("others")),
-            "others_label": request.form.get("others_label", "")
+            "others_label": request.form.get("others_label", ""),
+            "sundayschool": get_int(request.form.get("sundayschool")),
+            "for_visitor": get_int(request.form.get("for_visitor"))
         }
+
         mongo.db.entries.insert_one(data)
         return redirect(url_for("index", date=data["date"]))
 
@@ -47,7 +50,7 @@ def index():
         e["_id"] = str(e["_id"])
 
     # Compute original totals
-    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others"]
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor"]
     original_totals = {cat: sum(e.get(cat, 0) for e in entries) for cat in categories}
 
     # Compute expenses per category
@@ -80,16 +83,19 @@ def delete(id):
 def edit(id):
     updated = {
         "name": request.form["name"],
-        "tithes": int(request.form["tithes"] or 0),
-        "offering": int(request.form["offering"] or 0),
-        "sfc": int(request.form["sfc"] or 0),
-        "fp": int(request.form["fp"] or 0),
-        "ph": int(request.form["ph"] or 0),
-        "hor": int(request.form["hor"] or 0),
-        "soc": int(request.form["soc"] or 0),
-        "others_label": request.form["others_label"],
-        "others": int(request.form["others"] or 0)
+        "tithes": get_int(request.form.get("tithes")),
+        "offering": get_int(request.form.get("offering")),
+        "sfc": get_int(request.form.get("sfc")),
+        "fp": get_int(request.form.get("fp")),
+        "ph": get_int(request.form.get("ph")),
+        "hor": get_int(request.form.get("hor")),
+        "soc": get_int(request.form.get("soc")),
+        "others": get_int(request.form.get("others")),
+        "others_label": request.form.get("others_label"),
+        "sundayschool": get_int(request.form.get("sundayschool")),
+        "for_visitor": get_int(request.form.get("for_visitor"))
     }
+
     mongo.db.entries.update_one({"_id": ObjectId(id)}, {"$set": updated})
     return redirect(request.referrer)
 
