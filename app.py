@@ -170,6 +170,57 @@ def delete_expense(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/alltime-summary")
+def alltime_summary():
+    from collections import defaultdict
+
+    # Collect all unique dates from both collections
+    entry_dates = mongo.db.entries.distinct("date")
+    expense_dates = mongo.db.expenses.distinct("date")
+    all_dates = sorted(set(entry_dates + expense_dates), reverse=True)
+
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor"]
+
+    result = []
+
+    for date in all_dates:
+        entry_docs = list(mongo.db.entries.find({"date": date}))
+        expense_docs = list(mongo.db.expenses.find({"date": date}))
+
+        # Givings total per category
+        givings = defaultdict(float)
+        for entry in entry_docs:
+            for cat in categories:
+                givings[cat] += float(entry.get(cat, 0))
+
+        # Add names for transparency
+        detailed_givings = []
+        for entry in entry_docs:
+            giving_entry = {
+                "name": entry.get("name", ""),
+            }
+            for cat in categories:
+                giving_entry[cat] = float(entry.get(cat, 0))
+            detailed_givings.append(giving_entry)
+
+        # Total per day
+        total_givings = sum(givings.values())
+        total_expenses = sum(float(e.get("amount", 0)) for e in expense_docs)
+
+        for e in expense_docs:
+            e["_id"] = str(e["_id"])  # for JS use
+
+        result.append({
+            "date": date,
+            "total_givings": total_givings,
+            "total_expenses": total_expenses,
+            "givings": givings,
+            "entries": detailed_givings,
+            "expenses": expense_docs
+        })
+
+    return jsonify(result)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

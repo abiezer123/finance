@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const formDateInput = document.getElementById("form-date");
     modal = document.getElementById("expenses-modal");
     expenseForm = document.getElementById("expense-form");
-
     tableBody = document.querySelector("#entries-table tbody");
     tfoot = document.querySelector("#entries-table tfoot");
 
@@ -40,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetchAndUpdateTable(selectedDate);
     loadSummaryWithExpenses();
+    updateCashOnHand();
 
     // JPG Download
     document.getElementById("download-jpg").addEventListener("click", async () => {
@@ -61,6 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
         link.href = canvas.toDataURL("image/jpeg");
         link.click();
     });
+    document.getElementById("close-summary-modal").addEventListener("click", () => {
+        document.getElementById("summary-modal").style.display = "none";
+    });
+
 
     // Modal open/close
     document.getElementById("expenses-button").addEventListener("click", () => {
@@ -95,7 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 expenseForm.reset();
                 fetchAndUpdateTable(expense.date);
                 loadSummaryWithExpenses();
-            } else {
+                updateCashOnHand();
+            }
+            else {
                 alert("Failed to add expense.");
             }
         } catch (err) {
@@ -193,6 +199,7 @@ function confirmDelete(index) {
         .then(() => {
             fetchAndUpdateTable(selectedDate);
             loadSummaryWithExpenses();
+            updateCashOnHand(); // ✅ Add this
         })
         .catch(err => console.error("Delete error:", err));
 }
@@ -285,11 +292,114 @@ function deleteExpense(id) {
         .then(res => {
             if (res.ok) {
                 loadSummaryWithExpenses();
+                updateCashOnHand();
             } else {
                 alert("Failed to delete expense.");
             }
         })
         .catch(err => {
             console.error("Error deleting expense:", err);
+        });
+}
+
+async function loadAllTimeCashSummary() {
+    const modal = document.getElementById("summary-modal");
+    const tbody = document.getElementById("summary-details-body");
+    const cashDisplay = document.getElementById("alltime-cash");
+
+    modal.style.display = "block";
+    tbody.innerHTML = "";
+    let totalGivings = 0;
+    let totalExpenses = 0;
+    let totalCash = 0;
+
+    try {
+        const res = await fetch("/api/alltime-summary");
+        const data = await res.json();
+
+        // Sort from newest to oldest
+        data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        data.forEach((record, index) => {
+            const datePretty = formatDatePretty(record.date);
+            const givings = record.givings || {};
+            const expenses = record.expenses || [];
+            const totalGiving = record.total_givings || 0;
+            const totalExpense = record.total_expenses || 0;
+            const cashOnHand = totalGiving - totalExpense;
+
+            totalGivings += totalGiving;
+            totalExpenses += totalExpense;
+            totalCash += cashOnHand;
+
+            let html = `<tr><td colspan="4"><b>Date: ${datePretty}</b></td></tr>`;
+
+            // List of Expenses
+            html += `<tr><td colspan="4"><u>Expenses:</u></td></tr>`;
+            if (expenses.length === 0) {
+                html += `<tr><td colspan="4"><i>No expenses recorded</i></td></tr>`;
+            } else {
+                expenses.forEach(exp => {
+                    html += `
+                        <tr>
+                            <td></td>
+                            <td>${exp.label}</td>
+                            <td>${exp.from}</td>
+                            <td>₱${parseFloat(exp.amount).toLocaleString()}</td>
+                        </tr>`;
+                });
+            }
+
+            // Givings
+            html += `<tr><td colspan="4"><u>Givings:</u></td></tr>`;
+            Object.entries(givings).forEach(([key, value]) => {
+                html += `<tr>
+                    <td></td>
+                    <td colspan="2">${key}</td>
+                    <td>₱${parseFloat(value).toLocaleString()}</td>
+                </tr>`;
+            });
+
+            // Totals for the day
+            html += `
+                <tr style="background:#f6f6f6;">
+                    <td colspan="3"><b>Total Givings</b></td>
+                    <td><b>₱${totalGiving.toLocaleString()}</b></td>
+                </tr>
+                <tr style="background:#f6f6f6;">
+                    <td colspan="3"><b>Total Expenses</b></td>
+                    <td><b>₱${totalExpense.toLocaleString()}</b></td>
+                </tr>
+                <tr style="background:#e8f8f5;">
+                    <td colspan="3"><b>Cash on Hand</b></td>
+                    <td><b>₱${cashOnHand.toLocaleString()}</b></td>
+                </tr>
+                <tr><td colspan="4"><hr></td></tr>
+            `;
+
+            tbody.innerHTML += html;
+        });
+
+        // Final total
+        cashDisplay.textContent = `Cash on Hand: ₱${totalCash.toLocaleString()}`;
+
+    } catch (err) {
+        console.error("Summary fetch error:", err);
+        tbody.innerHTML = `<tr><td colspan="4">Error loading summary.</td></tr>`;
+    }
+}
+
+function updateCashOnHand() {
+    fetch("/api/alltime-summary")
+        .then(res => res.json())
+        .then(data => {
+            let totalGivings = 0;
+            let totalExpenses = 0;
+            data.forEach(day => {
+                totalGivings += day.total_givings;
+                totalExpenses += day.total_expenses;
+            });
+            const cash = totalGivings - totalExpenses;
+            document.getElementById("alltime-cash").innerText = `Cash on Hand: ₱${cash.toFixed(2)}`;
         });
 }
