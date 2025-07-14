@@ -109,9 +109,10 @@ html {
         padding: 1rem;
     }
 
-    .nav-toggle:checked+.nav-toggle-label+.navbar-links {
+    .nav-toggle:checked~.navbar-links {
         display: flex;
     }
+
 
     .navbar-links li {
         margin: 0.5rem 0;
@@ -328,4 +329,17 @@ hr {
         width: 90%;
         max-width: 300px;
     }
+}
+
+.text-red {
+    color: red;
+}
+
+.text-green {
+    color: green;
+}
+
+.text-orange {
+    color: orange;
+    font-weight: bold;
 }
