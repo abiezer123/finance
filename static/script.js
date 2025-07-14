@@ -20,6 +20,16 @@ document.addEventListener("DOMContentLoaded", () => {
     expenseForm = document.getElementById("expense-form");
     tableBody = document.querySelector("#entries-table tbody");
     tfoot = document.querySelector("#entries-table tfoot");
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll(".navbar-links li a");
+
+    navLinks.forEach(link => {
+        if (link.getAttribute("href") === currentPath) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
     const selectedDate = urlParams.get("date") || new Date().toISOString().split("T")[0];

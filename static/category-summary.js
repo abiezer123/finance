@@ -67,4 +67,22 @@ categorySelect.addEventListener("change", () => {
 // Initial load
 window.addEventListener("DOMContentLoaded", () => {
     fetchCategoryData(categorySelect.value);
+    const navToggle = document.getElementById("nav-toggle");
+    const navLinks = document.querySelector(".navbar-links");
+
+    navToggle.addEventListener("change", () => {
+        if (navToggle.checked) {
+            navLinks.style.display = "flex";
+        } else {
+            navLinks.style.display = "none";
+        }
+    });
+
+    // Optional: Hide menu when link is clicked
+    navLinks.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
+            navToggle.checked = false;
+            navLinks.style.display = "none";
+        });
+    });
 });
