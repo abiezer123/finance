@@ -9,7 +9,7 @@ const categories = [
 
 let tableBody;
 let tfoot;
-let modal; // modal element
+let modal;
 let expenseForm;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -315,15 +315,15 @@ async function loadAllTimeCashSummary() {
 
     try {
         const res = await fetch("/api/alltime-summary");
-        const data = await res.json();
+        const raw = await res.json();
+        const data = Array.isArray(raw) ? raw : (raw.summary || []);
 
-        // Sort from newest to oldest
         data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        data.forEach((record, index) => {
+        data.forEach(record => {
             const datePretty = formatDatePretty(record.date);
             const givings = record.givings || {};
-            const expenses = record.expenses || [];
+            const expenses = Array.isArray(record.expenses) ? record.expenses : [];
             const totalGiving = record.total_givings || 0;
             const totalExpense = record.total_expenses || 0;
             const cashOnHand = totalGiving - totalExpense;
@@ -333,9 +333,8 @@ async function loadAllTimeCashSummary() {
             totalCash += cashOnHand;
 
             let html = `<tr><td colspan="4"><b>Date: ${datePretty}</b></td></tr>`;
-
-            // List of Expenses
             html += `<tr><td colspan="4"><u>Expenses:</u></td></tr>`;
+
             if (expenses.length === 0) {
                 html += `<tr><td colspan="4"><i>No expenses recorded</i></td></tr>`;
             } else {
@@ -350,7 +349,6 @@ async function loadAllTimeCashSummary() {
                 });
             }
 
-            // Givings
             html += `<tr><td colspan="4"><u>Givings:</u></td></tr>`;
             Object.entries(givings).forEach(([key, value]) => {
                 html += `<tr>
@@ -360,7 +358,6 @@ async function loadAllTimeCashSummary() {
                 </tr>`;
             });
 
-            // Totals for the day
             html += `
                 <tr style="background:#f6f6f6;">
                     <td colspan="3"><b>Total Givings</b></td>
@@ -380,9 +377,7 @@ async function loadAllTimeCashSummary() {
             tbody.innerHTML += html;
         });
 
-        // Final total
         cashDisplay.textContent = `Cash on Hand: ₱${totalCash.toLocaleString()}`;
-
     } catch (err) {
         console.error("Summary fetch error:", err);
         tbody.innerHTML = `<tr><td colspan="4">Error loading summary.</td></tr>`;
@@ -393,13 +388,33 @@ function updateCashOnHand() {
     fetch("/api/alltime-summary")
         .then(res => res.json())
         .then(data => {
-            let totalGivings = 0;
-            let totalExpenses = 0;
-            data.forEach(day => {
-                totalGivings += day.total_givings;
-                totalExpenses += day.total_expenses;
+            const summary = data.summary || [];
+
+            let totalOffering = 0;
+            let totalOfferingExpenses = 0;
+
+            summary.forEach(day => {
+                const offering = parseFloat(day.givings?.offering || 0);
+                totalOffering += offering;
+
+                const expensesForOffering = Array.isArray(day.expenses)
+                    ? day.expenses
+                        .filter(exp => exp.from === "offering")
+                        .reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0)
+                    : 0;
+
+                totalOfferingExpenses += expensesForOffering;
             });
-            const cash = totalGivings - totalExpenses;
-            document.getElementById("alltime-cash").innerText = `Cash on Hand: ₱${cash.toFixed(2)}`;
+
+            const tithesCut = Math.ceil(totalOffering * 0.10);
+            const crvCut = Math.ceil(totalOffering * 0.10);
+            const offeringCash = totalOffering - tithesCut - crvCut - totalOfferingExpenses;
+
+            document.getElementById("alltime-cash").innerText =
+                `Cash on Hand (Offering): ₱${offeringCash.toLocaleString()}`;
+        })
+        .catch(err => {
+            console.error("Cash summary fetch failed:", err);
+            document.getElementById("alltime-cash").innerText = "Cash on Hand (Offering): ₱0";
         });
 }

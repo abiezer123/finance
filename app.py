@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from datetime import datetime
-import io
-import pandas as pd
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb+srv://abiezer:abiatharfam@cluster0.ghn0wj8.mongodb.net/church_finance?retryWrites=true&w=majority&appName=Cluster0"
@@ -46,6 +44,21 @@ def index():
 
     entries = list(mongo.db.entries.find({"date": selected_date}))
     expenses = list(mongo.db.expenses.find({"date": selected_date}))
+
+    all_entries = list(mongo.db.entries.find({}))
+    all_expenses = list(mongo.db.expenses.find({}))
+
+    all_time_total_offering = sum(e.get("offering", 0) for e in all_entries)
+    all_time_offering_tithes = round(all_time_total_offering * 0.10)
+    all_time_offering_crv = round(all_time_total_offering * 0.10)
+    all_time_offering_expenses = sum(
+        float(e.get("amount", 0)) for e in all_expenses if e.get("from") == "offering"
+    )
+    all_time_offering_remaining = max(
+        all_time_total_offering - all_time_offering_tithes - all_time_offering_crv - all_time_offering_expenses,
+        0
+    )
+
     for e in expenses:
         e["_id"] = str(e["_id"])
 
@@ -63,6 +76,12 @@ def index():
 
     # Compute adjusted totals
     adjusted_totals = {cat: original_totals[cat] - expense_totals[cat] for cat in categories}
+    total_offering = original_totals.get("offering", 0)
+    offering_tithes = round(total_offering * 0.10)
+    offering_crv = round(total_offering * 0.10)
+    offering_expenses = expense_totals.get("offering", 0)
+    offering_remaining = max(total_offering - offering_tithes - offering_crv - offering_expenses, 0)
+
 
     return render_template("index.html",
         date=selected_date,
@@ -70,8 +89,10 @@ def index():
         expenses=expenses,
         original_totals=original_totals,
         expense_totals=expense_totals,
-        adjusted_totals=adjusted_totals
+        adjusted_totals=adjusted_totals,
+        offering_remaining=all_time_offering_remaining 
     )
+
 
 
 @app.route("/delete/<id>")
@@ -172,56 +193,47 @@ def delete_expense(id):
 
 @app.route("/api/alltime-summary")
 def alltime_summary():
-    from collections import defaultdict
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others"]
 
-    # Collect all unique dates from both collections
+    # Get all unique dates
     entry_dates = mongo.db.entries.distinct("date")
     expense_dates = mongo.db.expenses.distinct("date")
     all_dates = sorted(set(entry_dates + expense_dates), reverse=True)
 
-    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor"]
-
-    result = []
+    summary = []
 
     for date in all_dates:
         entry_docs = list(mongo.db.entries.find({"date": date}))
         expense_docs = list(mongo.db.expenses.find({"date": date}))
 
-        # Givings total per category
-        givings = defaultdict(float)
-        for entry in entry_docs:
-            for cat in categories:
-                givings[cat] += float(entry.get(cat, 0))
-
-        # Add names for transparency
-        detailed_givings = []
-        for entry in entry_docs:
-            giving_entry = {
-                "name": entry.get("name", ""),
-            }
-            for cat in categories:
-                giving_entry[cat] = float(entry.get(cat, 0))
-            detailed_givings.append(giving_entry)
-
-        # Total per day
+        # Givings per category
+        givings = {cat: sum(float(e.get(cat, 0)) for e in entry_docs) for cat in categories}
         total_givings = sum(givings.values())
-        total_expenses = sum(float(e.get("amount", 0)) for e in expense_docs)
 
-        for e in expense_docs:
-            e["_id"] = str(e["_id"])  # for JS use
+        # Expenses per record
+        expenses = []
+        total_expenses = 0
+        for exp in expense_docs:
+            label = exp.get("label", "")
+            amount = float(exp.get("amount", 0))
+            from_cat = exp.get("from", "")
+            total_expenses += amount
 
-        result.append({
+            expenses.append({
+                "label": label,
+                "amount": amount,
+                "from": from_cat
+            })
+
+        summary.append({
             "date": date,
-            "total_givings": total_givings,
-            "total_expenses": total_expenses,
             "givings": givings,
-            "entries": detailed_givings,
-            "expenses": expense_docs
+            "expenses": expenses,
+            "total_givings": total_givings,
+            "total_expenses": total_expenses
         })
 
-    return jsonify(result)
-
-
+    return jsonify({"summary": summary})
 
 
 # category summary page

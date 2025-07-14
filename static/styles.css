@@ -343,3 +343,8 @@ hr {
     color: orange;
     font-weight: bold;
 }
+
+#alltime-cash {
+    font-weight: bold;
+    color: #2c3e50;
+}
