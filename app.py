@@ -3,6 +3,7 @@ from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from datetime import datetime
 from flask import session
+from functools import wraps
 
 
 app = Flask(__name__)
@@ -14,6 +15,14 @@ print("MongoDB connection successful:", mongo.db)
 users_collection = mongo.db.users
 app.secret_key = "123"
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def get_int(value):
     try:
         return int(value)
@@ -21,8 +30,7 @@ def get_int(value):
         return 0
 
 @app.route("/", methods=["GET", "POST"])
-
-    
+@login_required
 def index():
     if 'username' not in session:
         return redirect(url_for('login'))
