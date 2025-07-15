@@ -23,11 +23,12 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def get_int(value):
+def get_float(value):
     try:
-        return int(value)
+        return float(value)
     except (ValueError, TypeError):
-        return 0
+        return 0.0
+
 
 @app.route("/", methods=["GET", "POST"])
 @login_required
@@ -41,17 +42,17 @@ def index():
         data = {
             "date": request.form["date"],
             "name": request.form["name"],
-            "tithes": get_int(request.form.get("tithes")),
-            "offering": get_int(request.form.get("offering")),
-            "sfc": get_int(request.form.get("sfc")),
-            "fp": get_int(request.form.get("fp")),
-            "ph": get_int(request.form.get("ph")),
-            "hor": get_int(request.form.get("hor")),
-            "soc": get_int(request.form.get("soc")),
-            "others": get_int(request.form.get("others")),
+            "tithes": get_float(request.form.get("tithes")),
+            "offering": get_float(request.form.get("offering")),
+            "sfc": get_float(request.form.get("sfc")),
+            "fp": get_float(request.form.get("fp")),
+            "ph": get_float(request.form.get("ph")),
+            "hor": get_float(request.form.get("hor")),
+            "soc": get_float(request.form.get("soc")),
+            "others": get_float(request.form.get("others")),
             "others_label": request.form.get("others_label", ""),
-            "sundayschool": get_int(request.form.get("sundayschool")),
-            "for_visitor": get_int(request.form.get("for_visitor"))
+            "sundayschool": get_float(request.form.get("sundayschool")),
+            "for_visitor": get_float(request.form.get("for_visitor"))
         }
 
         mongo.db.entries.insert_one(data)
@@ -64,8 +65,9 @@ def index():
     all_expenses = list(mongo.db.expenses.find({}))
 
     all_time_total_offering = sum(e.get("offering", 0) for e in all_entries)
-    all_time_offering_tithes = round(all_time_total_offering * 0.10)
-    all_time_offering_crv = round(all_time_total_offering * 0.10)
+    all_time_offering_tithes = all_time_total_offering * 0.10
+    all_time_offering_crv = all_time_total_offering * 0.10
+
     all_time_offering_expenses = sum(
         float(e.get("amount", 0)) for e in all_expenses if e.get("from") == "offering"
     )
@@ -92,8 +94,8 @@ def index():
     # Compute adjusted totals
     adjusted_totals = {cat: original_totals[cat] - expense_totals[cat] for cat in categories}
     total_offering = original_totals.get("offering", 0)
-    offering_tithes = round(total_offering * 0.10)
-    offering_crv = round(total_offering * 0.10)
+    offering_tithes = total_offering * 0.10
+    offering_crv = total_offering * 0.10
     offering_expenses = expense_totals.get("offering", 0)
     offering_remaining = max(total_offering - offering_tithes - offering_crv - offering_expenses, 0)
 
@@ -119,17 +121,17 @@ def delete(id):
 def edit(id):
     updated = {
         "name": request.form["name"],
-        "tithes": get_int(request.form.get("tithes")),
-        "offering": get_int(request.form.get("offering")),
-        "sfc": get_int(request.form.get("sfc")),
-        "fp": get_int(request.form.get("fp")),
-        "ph": get_int(request.form.get("ph")),
-        "hor": get_int(request.form.get("hor")),
-        "soc": get_int(request.form.get("soc")),
-        "others": get_int(request.form.get("others")),
+        "tithes": get_float(request.form.get("tithes")),
+        "offering": get_float(request.form.get("offering")),
+        "sfc": get_float(request.form.get("sfc")),
+        "fp": get_float(request.form.get("fp")),
+        "ph": get_float(request.form.get("ph")),
+        "hor": get_float(request.form.get("hor")),
+        "soc": get_float(request.form.get("soc")),
+        "others": get_float(request.form.get("others")),
         "others_label": request.form.get("others_label"),
-        "sundayschool": get_int(request.form.get("sundayschool")),
-        "for_visitor": get_int(request.form.get("for_visitor"))
+        "sundayschool": get_float(request.form.get("sundayschool")),
+        "for_visitor": get_float(request.form.get("for_visitor"))
     }
 
     mongo.db.entries.update_one({"_id": ObjectId(id)}, {"$set": updated})
@@ -288,21 +290,13 @@ def category_history(category):
         })
 
         if category == "tithes":
-            tithes_cut = round(total_giving * 0.10)
-            remaining -= tithes_cut
-            total_deduction += tithes_cut
+            tithes_cut = total_giving * 0.10
+            offering_cut = total_giving * 0.30
+            crv_cut = total_giving * 0.10
+            pastor_cut = total_giving - (tithes_cut + offering_cut + crv_cut)
 
-            offering_cut = round(remaining * 0.30)
-            remaining -= offering_cut
-            total_deduction += offering_cut
-
-            crv_cut = round(remaining * 0.10)
-            remaining -= crv_cut
-            total_deduction += crv_cut
-
-            pastor_cut = remaining
-            total_deduction += pastor_cut
-            remaining = 0
+            total_deduction = tithes_cut + offering_cut + crv_cut + pastor_cut
+            remaining = 0  # Fully distributed
 
             breakdown.extend([
                 {"date": formatted_date, "type": "Tithes(Tithes) - 10%", "amount": tithes_cut, "label": ""},
@@ -311,10 +305,11 @@ def category_history(category):
                 {"date": formatted_date, "type": "For Pastor - 50%", "amount": pastor_cut, "label": ""}
             ])
 
+
         elif category == "offering":
-            tithe_cut = round(total_giving * 0.10)
-            crv_cut = round(total_giving * 0.10)
-            expense_cut = round(total_expenses)
+            tithe_cut = total_giving * 0.10
+            crv_cut = total_giving * 0.10
+            expense_cut = total_expenses
 
             total_deduction = tithe_cut + crv_cut + expense_cut
             remaining = total_giving - total_deduction
@@ -327,9 +322,9 @@ def category_history(category):
             ])
 
         elif category in ["fp", "hor"]:
-            tithe_cut = round(total_giving * 0.10)
-            hq_cut = round(total_giving * 0.45)
-            expense_cut = round(total_expenses)
+            tithe_cut = total_giving * 0.10
+            hq_cut = total_giving * 0.45
+            expense_cut = total_expenses
 
             total_deduction = tithe_cut + hq_cut + expense_cut
             remaining = total_giving - total_deduction
@@ -342,8 +337,8 @@ def category_history(category):
             ])
 
         elif category == "sundayschool":
-            tithe_cut = round(total_giving * 0.10)
-            expense_cut = round(total_expenses)
+            tithe_cut = total_giving * 0.10
+            expense_cut = total_expenses
 
             total_deduction = tithe_cut + expense_cut
             remaining = total_giving - total_deduction
@@ -368,7 +363,7 @@ def category_history(category):
             })
 
         else:
-            expense_cut = round(total_expenses)
+            expense_cut = total_expenses
             total_deduction = expense_cut
             remaining = total_giving - expense_cut
             total_remaining_cash += remaining

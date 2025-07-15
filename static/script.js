@@ -144,7 +144,6 @@ function updateTable(data) {
         sundayschool: 0, for_visitor: 0
     };
 
-
     data.forEach((row, index) => {
         totals.tithes += row.tithes || 0;
         totals.offering += row.offering || 0;
@@ -154,21 +153,23 @@ function updateTable(data) {
         totals.hor += row.hor || 0;
         totals.soc += row.soc || 0;
         totals.others += row.others || 0;
+        totals.sundayschool += row.sundayschool || 0;
+        totals.for_visitor += row.for_visitor || 0;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${row.name}</td>
-            <td>${row.tithes || ""}</td>
-            <td>${row.offering || ""}</td>
-            <td>${row.sfc || ""}</td>
-            <td>${row.fp || ""}</td>
-            <td>${row.ph || ""}</td>
-            <td>${row.hor || ""}</td>
-            <td>${row.soc || ""}</td>
-            <td>${row.sundayschool || ""}</td>
-            <td>${row.for_visitor || ""}</td>
-            <td>${row.others ? row.others + ` (${row.others_label || "N/A"})` : ""}</td>
+            <td>${row.tithes ? `₱${parseFloat(row.tithes).toFixed(2)}` : ""}</td>
+            <td>${row.offering ? `₱${parseFloat(row.offering).toFixed(2)}` : ""}</td>
+            <td>${row.sfc ? `₱${parseFloat(row.sfc).toFixed(2)}` : ""}</td>
+            <td>${row.fp ? `₱${parseFloat(row.fp).toFixed(2)}` : ""}</td>
+            <td>${row.ph ? `₱${parseFloat(row.ph).toFixed(2)}` : ""}</td>
+            <td>${row.hor ? `₱${parseFloat(row.hor).toFixed(2)}` : ""}</td>
+            <td>${row.soc ? `₱${parseFloat(row.soc).toFixed(2)}` : ""}</td>
+            <td>${row.sundayschool ? `₱${parseFloat(row.sundayschool).toFixed(2)}` : ""}</td>
+            <td>${row.for_visitor ? `₱${parseFloat(row.for_visitor).toFixed(2)}` : ""}</td>
+            <td>${row.others ? `₱${parseFloat(row.others).toFixed(2)} (${row.others_label || "N/A"})` : ""}</td>
             <td><button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button></td>
         `;
         tableBody.appendChild(tr);
@@ -178,16 +179,16 @@ function updateTable(data) {
     tfoot.innerHTML = `
         <tr>
             <td colspan="2"><strong>Totals:</strong></td>
-            <td>${totals.tithes}</td>
-            <td>${totals.offering}</td>
-            <td>${totals.sfc}</td>
-            <td>${totals.fp}</td>
-            <td>${totals.ph}</td>
-            <td>${totals.hor}</td>
-            <td>${totals.soc}</td>
-            <td>${totals.sundayschool}</td>
-            <td>${totals.for_visitor}</td>
-            <td>${totals.others}</td>
+            <td>₱${totals.tithes.toFixed(2)}</td>
+            <td>₱${totals.offering.toFixed(2)}</td>
+            <td>₱${totals.sfc.toFixed(2)}</td>
+            <td>₱${totals.fp.toFixed(2)}</td>
+            <td>₱${totals.ph.toFixed(2)}</td>
+            <td>₱${totals.hor.toFixed(2)}</td>
+            <td>₱${totals.soc.toFixed(2)}</td>
+            <td>₱${totals.sundayschool.toFixed(2)}</td>
+            <td>₱${totals.for_visitor.toFixed(2)}</td>
+            <td>₱${totals.others.toFixed(2)}</td>
             <td></td>
         </tr>
     `;
@@ -232,6 +233,7 @@ async function loadSummaryWithExpenses() {
 
     const summaryBody = document.getElementById("summary-body");
     summaryBody.innerHTML = "";
+    //
 
     const originalTotals = {};
     const expenseTotals = {};
@@ -243,7 +245,7 @@ async function loadSummaryWithExpenses() {
     // Original total row
     let totalRow = `<tr><td>-</td><td><b>Original Total</b></td>`;
     categories.forEach(cat => {
-        totalRow += `<td><b>${originalTotals[cat]}</b></td>`;
+        totalRow += `<td><b>₱${originalTotals[cat].toLocaleString()}</b></td>`;
     });
     totalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += totalRow;
@@ -257,7 +259,7 @@ async function loadSummaryWithExpenses() {
         let row = `<tr><td>${i + 1}</td><td>Expense</td>`;
         categories.forEach(cat => {
             if (cat === e.from) {
-                row += `<td>${parseFloat(e.amount).toFixed(2)} (${e.label})</td>`;
+                row += `<td style="color:red;">-₱${parseFloat(e.amount).toFixed(2)} (${e.label})</td>`;
             } else {
                 row += `<td></td>`;
             }
@@ -267,10 +269,11 @@ async function loadSummaryWithExpenses() {
         summaryBody.innerHTML += row;
     });
 
+
     // Total Expenses row
     let expenseTotalRow = `<tr><td>-</td><td><b>Total Expenses</b></td>`;
     categories.forEach(cat => {
-        expenseTotalRow += `<td><b>${expenseTotals[cat]}</b></td>`;
+        expenseTotalRow += `<td><b>₱${expenseTotals[cat].toLocaleString()}</b></td>`;
     });
     expenseTotalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += expenseTotalRow;
@@ -278,10 +281,15 @@ async function loadSummaryWithExpenses() {
     // Final cash on hand row
     let finalRow = `<tr><td>-</td><td><b>Cash on Hand</b></td>`;
     categories.forEach(cat => {
-        finalRow += `<td><b>${originalTotals[cat] - expenseTotals[cat]}</b></td>`;
+        const orig = originalTotals[cat] || 0;
+        const exp = expenseTotals[cat] || 0;
+        const ded = deductionTotals[cat] || 0;
+        const remaining = orig - exp - ded;
+        finalRow += `<td><b>₱${remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></td>`;
     });
     finalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += finalRow;
+
 
     const totalIncome = Object.values(originalTotals).reduce((sum, val) => sum + val, 0);
     const totalFinal = categories.reduce((acc, cat) => acc + (originalTotals[cat] - expenseTotals[cat]), 0);
@@ -315,7 +323,7 @@ function deleteExpense(id) {
 async function loadAllTimeCashSummary() {
     const modal = document.getElementById("summary-modal");
     const tbody = document.getElementById("summary-details-body");
-    const cashDisplay = document.getElementById("alltime-cash");
+    const cashDisplay = document.getElementById("offering-cash");  // ✅ define it properly
 
     modal.style.display = "block";
     tbody.innerHTML = "";
@@ -387,7 +395,8 @@ async function loadAllTimeCashSummary() {
             tbody.innerHTML += html;
         });
 
-        cashDisplay.textContent = `Cash on Hand: ₱${totalCash.toLocaleString()}`;
+
+
     } catch (err) {
         console.error("Summary fetch error:", err);
         tbody.innerHTML = `<tr><td colspan="4">Error loading summary.</td></tr>`;
@@ -416,15 +425,19 @@ function updateCashOnHand() {
                 totalOfferingExpenses += expensesForOffering;
             });
 
-            const tithesCut = Math.ceil(totalOffering * 0.10);
-            const crvCut = Math.ceil(totalOffering * 0.10);
-            const offeringCash = totalOffering - tithesCut - crvCut - totalOfferingExpenses;
+            const tithesCut = totalOffering * 0.10;
+            const crvCut = totalOffering * 0.10;
+            const netCash = totalOffering - tithesCut - crvCut - totalOfferingExpenses;
 
-            document.getElementById("alltime-cash").innerText =
-                `Cash on Hand (Offering): ₱${offeringCash.toLocaleString()}`;
+            const formattedCash = netCash.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            document.getElementById("offering-cash").innerText = `Cash on Hand (Offering): ₱${formattedCash}`;
         })
         .catch(err => {
             console.error("Cash summary fetch failed:", err);
-            document.getElementById("alltime-cash").innerText = "Cash on Hand (Offering): ₱0";
+            document.getElementById("alltime-cash").innerText = "Cash on Hand (Offering): ₱0.00";
         });
 }
