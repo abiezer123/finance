@@ -141,7 +141,7 @@ function updateTable(data) {
     const totals = {
         tithes: 0, offering: 0, sfc: 0, fp: 0,
         ph: 0, hor: 0, soc: 0, others: 0,
-        sundayschool: 0, for_visitor: 0
+        sundayschool: 0, for_visitor: 0, amd: 0
     };
 
     data.forEach((row, index) => {
@@ -155,6 +155,7 @@ function updateTable(data) {
         totals.others += row.others || 0;
         totals.sundayschool += row.sundayschool || 0;
         totals.for_visitor += row.for_visitor || 0;
+        totals.amd += row.amd || 0;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -169,6 +170,7 @@ function updateTable(data) {
             <td>${row.soc ? `₱${parseFloat(row.soc).toFixed(2)}` : ""}</td>
             <td>${row.sundayschool ? `₱${parseFloat(row.sundayschool).toFixed(2)}` : ""}</td>
             <td>${row.for_visitor ? `₱${parseFloat(row.for_visitor).toFixed(2)}` : ""}</td>
+            <td>${row.amd ? `₱${parseFloat(row.amd).toFixed(2)}` : ""}</td>
             <td>${row.others ? `₱${parseFloat(row.others).toFixed(2)} (${row.others_label || "N/A"})` : ""}</td>
             <td><button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button></td>
         `;
@@ -188,6 +190,7 @@ function updateTable(data) {
             <td>₱${totals.soc.toFixed(2)}</td>
             <td>₱${totals.sundayschool.toFixed(2)}</td>
             <td>₱${totals.for_visitor.toFixed(2)}</td>
+            <td>₱${totals.amd.toFixed(2)}</td>
             <td>₱${totals.others.toFixed(2)}</td>
             <td></td>
         </tr>

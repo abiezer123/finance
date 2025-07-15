@@ -52,7 +52,8 @@ def index():
             "others": get_float(request.form.get("others")),
             "others_label": request.form.get("others_label", ""),
             "sundayschool": get_float(request.form.get("sundayschool")),
-            "for_visitor": get_float(request.form.get("for_visitor"))
+            "for_visitor": get_float(request.form.get("for_visitor")),
+            "amd": get_float(request.form.get("amd"))
         }
 
         mongo.db.entries.insert_one(data)
@@ -80,7 +81,7 @@ def index():
         e["_id"] = str(e["_id"])
 
     # Compute original totals
-    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor"]
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor", "amd"]
     original_totals = {cat: sum(e.get(cat, 0) for e in entries) for cat in categories}
 
     # Compute expenses per category
@@ -131,7 +132,9 @@ def edit(id):
         "others": get_float(request.form.get("others")),
         "others_label": request.form.get("others_label"),
         "sundayschool": get_float(request.form.get("sundayschool")),
-        "for_visitor": get_float(request.form.get("for_visitor"))
+        "for_visitor": get_float(request.form.get("for_visitor")),
+        "amd": get_float(request.form.get("amd"))
+
     }
 
     mongo.db.entries.update_one({"_id": ObjectId(id)}, {"$set": updated})
@@ -153,6 +156,9 @@ def download(date):
         "ph": sum(e.get("ph", 0) for e in entries),
         "hor": sum(e.get("hor", 0) for e in entries),
         "soc": sum(e.get("soc", 0) for e in entries),
+        "amd": sum(e.get("amd", 0) for e in entries),
+        "sundayschool": sum(e.get("sundayschool", 0) for e in entries),
+        "for_visitor": sum(e.get("for_visitor", 0) for e in entries),
         "others_label": "—",
         "others": sum(e.get("others", 0) for e in entries)
     }
@@ -210,8 +216,7 @@ def delete_expense(id):
 
 @app.route("/api/alltime-summary")
 def alltime_summary():
-    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others"]
-
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor", "amd"]
     # Get all unique dates
     entry_dates = mongo.db.entries.distinct("date")
     expense_dates = mongo.db.expenses.distinct("date")

@@ -81,7 +81,8 @@
                         <th>HOR</th>
                         <th>SOC</th>
                         <th>Sunday School</th>
-                        <th>For Visitor</th>
+                        <th>For Visitor(bigas)</th>
+                        <th>AMD</th>
                         <th>Others</th>
                         <th>Actions</th>
                     </tr>
@@ -98,13 +99,21 @@
                         <td>{{ entry.ph }}</td>
                         <td>{{ entry.hor }}</td>
                         <td>{{ entry.soc }}</td>
+                        <td>{{ entry.sundayschool }}</td>
+                        <td>{{ entry.for_visitor }}</td>
+                        <td>{{ entry.amd }}</td>
                         <td>{{ entry.others }} ({{ entry.others_label or 'N/A' }})</td>
                         <td>
-                            <!-- Edit/Delete buttons can be added here -->
+                            <!-- ✅ Place your delete button here -->
+                            <button onclick="deleteEntry('{{ entry._id }}')"
+                                style="background-color:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
+
                 <tfoot>
                     <tr>
                         <td><strong>Totals:</strong></td>
@@ -118,6 +127,7 @@
                         <td>{{ original_totals.soc }}</td>
                         <td>{{ original_totals.sundayschool }}</td>
                         <td>{{ original_totals.for_visitor }}</td>
+                        <td>{{ original_totals.amd }}</td>
                         <td>{{ original_totals.others }}</td>
                         <td></td>
                     </tr>
@@ -148,7 +158,8 @@
                         <th>HOR</th>
                         <th>SOC</th>
                         <th>Sunday School</th>
-                        <th>For Visitor</th>
+                        <th>For Visitor(bigas)</th>
+                        <th>AMD</th>
                         <th>Others</th>
                         <th></th>
                     </tr>
@@ -175,7 +186,8 @@
             <input type="number" step="any" name="hor" id="hor" placeholder="HOR">
             <input type="number" step="any" name="soc" id="soc" placeholder="SOC">
             <input type="number" step="any" name="sundayschool" id="sundayschool" placeholder="Sunday School">
-            <input type="number" step="any" name="for_visitor" id="for_visitor" placeholder="For Visitor">
+            <input type="number" step="any" name="for_visitor" id="for_visitor" placeholder="For Visitor(bigas)">
+            <input type="number" step="any" name="amd" id="amd" placeholder="AMD">
             <input type="number" step="any" name="others" id="others" placeholder="Others Amount">
 
             <input type="text" name="others_label" id="other-label" placeholder="Other Label">
@@ -206,7 +218,8 @@
                         <option value="hor">HOR</option>
                         <option value="soc">SOC</option>
                         <option value="sundayschool">Sunday School</option>
-                        <option value="for_visitor">For Visitor</option>
+                        <option value="for_visitor">For Visitor(bigas)</option>
+                        <option value="amd">AMD</option>
                         <option value="others">Others</option>
                     </select><br><br>
                     <button type="submit">Submit</button>
