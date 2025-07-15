@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from datetime import datetime
+from flask import session
+
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb+srv://abiezer:abiatharfam@cluster0.ghn0wj8.mongodb.net/church_finance?retryWrites=true&w=majority&appName=Cluster0"
@@ -9,6 +11,8 @@ app.config["MONGO_URI"] = "mongodb+srv://abiezer:abiatharfam@cluster0.ghn0wj8.mo
 mongo = PyMongo(app)
 # Make sure this runs without error
 print("MongoDB connection successful:", mongo.db)
+users_collection = mongo.db.users
+app.secret_key = "123"
 
 def get_int(value):
     try:
@@ -20,6 +24,9 @@ def get_int(value):
 
     
 def index():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
     selected_date = request.args.get("date") or datetime.today().strftime("%Y-%m-%d")
 
     if request.method == "POST":
@@ -387,6 +394,25 @@ def category_history(category):
 
     return jsonify(history)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username').strip()
+        password = request.form.get('password')
+
+        user = users_collection.find_one({'username': username})
+        if user and user.get('password') == password:
+            session['username'] = username
+            return redirect(url_for('index'))  # Redirect to the attendance page
+        else:
+            error = 'Invalid username or password'
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
 
 if __name__ == "__main__":
     app.run(debug=True)
