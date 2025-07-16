@@ -205,9 +205,11 @@
                 <h3>Add Expense</h3>
                 <form id="expense-form">
                     <label>Amount:</label>
-                    <input type="number" name="amount" required><br>
+                    <input type="number" name="amount" step="any" required><br>
+
                     <label>Label:</label>
                     <input type="text" name="label" required><br>
+
                     <label>Deduct from:</label>
                     <select name="from" required>
                         <option value="tithes">Tithes</option>
@@ -222,8 +224,10 @@
                         <option value="amd">AMD</option>
                         <option value="others">Others</option>
                     </select><br><br>
+
                     <button type="submit">Submit</button>
                 </form>
+
             </div>
         </div>
 

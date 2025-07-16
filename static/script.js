@@ -226,6 +226,7 @@ function formatDatePretty(dateString) {
 
 // Load summary and expenses table
 async function loadSummaryWithExpenses() {
+
     const date = document.getElementById("entry-date").value;
     const [entriesRes, expensesRes] = await Promise.all([
         fetch(`/api/entries?date=${date}`),
@@ -286,8 +287,7 @@ async function loadSummaryWithExpenses() {
     categories.forEach(cat => {
         const orig = originalTotals[cat] || 0;
         const exp = expenseTotals[cat] || 0;
-        const ded = deductionTotals[cat] || 0;
-        const remaining = orig - exp - ded;
+        const remaining = orig - exp;
         finalRow += `<td><b>₱${remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></td>`;
     });
     finalRow += `<td>-</td></tr>`;
@@ -299,6 +299,7 @@ async function loadSummaryWithExpenses() {
 
     document.getElementById("overall-income-total").textContent = `Total Givings: ₱${totalIncome.toLocaleString()}`;
     document.getElementById("overall-final-total").textContent = `Total After Expenses: ₱${totalFinal.toLocaleString()}`;
+
 }
 
 
