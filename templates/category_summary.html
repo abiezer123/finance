@@ -78,6 +78,8 @@
                         <th>Label</th>
                         <th>Total Expenses</th> <!-- ADD -->
                         <th>Remaining</th> <!-- ADD -->
+                        <th>Action</th>
+
                     </tr>
                 </thead>
 
@@ -86,6 +88,31 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="modal-overlay" id="expense-modal">
+            <div class="modal-content">
+                <span class="modal-close" id="close-expense-modal">&times;</span>
+                <h3>Add Expense for <span id="modal-category-name">Category</span></h3>
+                <form id="expense-form">
+
+                    <label for="expense-label">Label:</label>
+                    <input type="hidden" id="expense-date" name="date">
+                    <label for="expense-amount">Amount:</label>
+                    <input type="number" id="expense-amount" step="0.01" required>
+                    <input type="text" id="expense-label" required>
+                    <label for="modal-category-select">Category:</label>
+                    <select id="modal-category-select" required></select>
+                    <button type="submit">Submit Expense</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Expense Button -->
+        <button id="add-expense-btn" style="margin-top: 20px;">+ Add Expense</button>
+
+
+
+
 
 
     </main>

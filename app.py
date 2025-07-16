@@ -185,25 +185,35 @@ def api_entries():
         e["_id"] = str(e["_id"])  # Convert ObjectId to string
     return jsonify(entries)
 
-@app.route("/add-expense", methods=["POST"])
-def add_expense():
-    data = request.get_json()
-    if not data:
-        return "Invalid request", 400
-
-    # Save the expense record to its own collection
-    mongo.db.expenses.insert_one(data)
-
-    return jsonify({"success": True})
-
-
-@app.route("/api/expenses", methods=["GET"])
+@app.route("/api/expenses")
 def get_expenses():
     date = request.args.get("date")
+    if not date:
+        return jsonify([])
+
     expenses = list(mongo.db.expenses.find({"date": date}))
     for e in expenses:
-        e["_id"] = str(e["_id"])
+        e["_id"] = str(e["_id"])  # convert ObjectId to string for frontend use
     return jsonify(expenses)
+
+
+@app.route("/add-expense", methods=["POST"])
+def add_expense():
+    data = request.json
+
+    if not all(k in data for k in ("date", "from", "label", "amount")):
+        return jsonify({"error": "Missing fields"}), 400
+
+    mongo.db.expenses.insert_one({
+        "date": data["date"],
+        "from": data["from"],
+        "label": data["label"],
+        "amount": float(data["amount"]),
+        "type": "Expense"
+    })
+
+    return jsonify({"message": "Expense added"}), 200
+
 
 
 @app.route("/delete-expense/<id>", methods=["DELETE"])
@@ -472,7 +482,39 @@ def login():
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
-    
+
+@app.route("/delete-expense/<expense_id>", methods=["DELETE"])
+def delete_manual_expense(expense_id):
+    result = mongo.db.expenses.delete_one({"_id": ObjectId(expense_id), "source": "manual"})
+    if result.deleted_count == 1:
+        return jsonify({"success": True})
+    else:
+        return jsonify({"error": "Not found or not manual"}), 404
+@app.route("/api/manual-expense", methods=["POST"])
+def add_manual_expense():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid or missing JSON data"}), 400
+
+    # Ensure required fields exist
+    required_fields = ["date", "from", "label", "amount"]
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing one or more required fields"}), 400
+
+    # Create the expense document
+    expense = {
+        "date": data["date"],
+        "from": data["from"],
+        "label": data["label"],
+        "amount": float(data["amount"]),
+        "type": "Expense",
+        "source": "manual"
+    }
+
+    mongo.db.expenses.insert_one(expense)
+
+    return jsonify({"success": True, "message": "Manual expense recorded."}), 201
+
 
 if __name__ == "__main__":
     app.run(debug=True)
