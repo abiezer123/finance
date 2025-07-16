@@ -22,21 +22,33 @@ async function fetchCategoryData(category) {
     data.forEach(entry => {
         const type = entry.type.toLowerCase();
         const isCashRow = entry.type === "Cash on Hand";
-        const isTotalGiving = type.toLowerCase().includes("total giving");
-        const isTotalExpenses = type.toLowerCase().includes("total expenses");
-        const isTotalDeduction = type.toLowerCase().includes("total deduction");
+        const isTotalGiving = type.includes("total giving");
+        const isTotalExpenses = type.includes("total expenses");
+        const isTotalDeduction = type.includes("total deduction");
 
-        const isNegative = !isTotalGiving; // Treat as negative if not Total Giving
-        let amountClass = isTotalGiving ? 'text-green' : 'text-red';
-        if (isTotalExpenses || isTotalDeduction) amountClass = 'text-orange';
+        const derivedInputTypes = [
+            "tithes(tithes)", "offering(tithes)", "fp(tithes)", "hor(tithes)", "sundayschool(tithes)",
+            "crv", "fp(hq)", "hor(hq)", "sfc", "ph"
+        ];
+        const isDerivedInput = derivedInputTypes.includes(entry.type.toLowerCase());
 
+        let amountClass = 'text-red';
+        if (isTotalGiving || isDerivedInput) {
+            amountClass = 'text-green';
+        } else if (isTotalExpenses || isTotalDeduction) {
+            amountClass = 'text-orange';
+        }
 
-        let amountValue = parseFloat(entry.amount).toFixed(2);
-        let displayAmount = isNegative ? `-₱${amountValue}` : `₱${amountValue}`;
+        let amountValue = parseFloat(entry.amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        const displayAmount = (amountClass === 'text-green') ? `₱${amountValue}` : `-₱${amountValue}`;
 
         if (isCashRow) {
             totalCash = parseFloat(entry.amount);
-            return; // Skip adding Cash on Hand to the table
+            return;
         }
 
         const expenses = entry.total_expenses !== undefined ? `₱${parseFloat(entry.total_expenses).toFixed(2)}` : "-";
@@ -44,15 +56,16 @@ async function fetchCategoryData(category) {
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${entry.date}</td>
-            <td><strong>${entry.type}</strong></td>
-            <td class="${amountClass}"><strong>${displayAmount}</strong></td>
-            <td>${entry.label || "-"}</td>
-            <td>${expenses}</td>
-            <td>${remaining}</td>
-        `;
+        <td>${entry.date}</td>
+        <td><strong>${entry.type}</strong></td>
+        <td class="${amountClass}"><strong>${displayAmount}</strong></td>
+        <td>${entry.label || "-"}</td>
+        <td>${expenses}</td>
+        <td>${remaining}</td>
+    `;
         tableBody.appendChild(tr);
     });
+
 
     cashDisplay.textContent = `Cash on Hand: ₱${totalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -86,3 +99,5 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+

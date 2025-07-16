@@ -260,147 +260,198 @@ def alltime_summary():
 
 # category summary page
 @app.route("/category-summary")
+@login_required
 def category_summary():
-    return render_template("category_summary.html")
+    return render_template("category_summary.html", username=session.get('username'))
 
 @app.route("/api/category-history/<category>")
 def category_history(category):
-    allowed = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others"]
-    if category not in allowed:
-        return jsonify([])
-
+    base_categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others", "amd"]
+    derived_categories = [
+        "tithes(tithes)", "offering(tithes)", "fp(tithes)", "hor(tithes)",
+        "sundayschool(tithes)", "crv", "fp(hq)", "hor(hq)"
+    ]
+    
     all_dates = sorted(set(mongo.db.entries.distinct("date") + mongo.db.expenses.distinct("date")))
     history = []
     total_remaining_cash = 0
 
-    for date in all_dates:
-        formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
-        entry_docs = list(mongo.db.entries.find({"date": date}))
-        expense_docs = list(mongo.db.expenses.find({"date": date, "from": category}))
-        total_giving = sum(float(entry.get(category, 0)) for entry in entry_docs)
-        total_expenses = sum(float(e.get("amount", 0)) for e in expense_docs)
+    if category in base_categories:
+        for date in all_dates:
+            formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
+            entry_docs = list(mongo.db.entries.find({"date": date}))
+            expense_docs = list(mongo.db.expenses.find({"date": date, "from": category}))
+            total_giving = sum(float(entry.get(category, 0)) for entry in entry_docs)
+            total_expenses = sum(float(e.get("amount", 0)) for e in expense_docs)
 
-        if total_giving == 0 and not expense_docs:
-            continue
+            if total_giving == 0 and not expense_docs:
+                continue
 
-        breakdown = []
-        total_deduction = 0
-        remaining = total_giving
+            breakdown = []
+            total_deduction = 0
+            remaining = total_giving
 
-        breakdown.append({
-            "date": formatted_date,
-            "type": "Total Giving",
-            "amount": total_giving,
+            breakdown.append({
+                "date": formatted_date,
+                "type": "Total Giving",
+                "amount": total_giving,
+                "label": ""
+            })
+
+            if category == "tithes":
+                tithes_cut = total_giving * 0.10
+                offering_cut = total_giving * 0.30
+                crv_cut = total_giving * 0.10
+                pastor_cut = total_giving - (tithes_cut + offering_cut + crv_cut)
+                total_deduction = total_giving
+                remaining = 0
+
+                breakdown.extend([
+                    {"date": formatted_date, "type": "Tithes(Tithes) - 10%", "amount": tithes_cut, "label": ""},
+                    {"date": formatted_date, "type": "Tithes(Offering) - 30%", "amount": offering_cut, "label": ""},
+                    {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
+                    {"date": formatted_date, "type": "For Pastor - 50%", "amount": pastor_cut, "label": ""}
+                ])
+            elif category == "offering":
+                tithe_cut = total_giving * 0.10
+                crv_cut = total_giving * 0.10
+                expense_cut = total_expenses
+                total_deduction = tithe_cut + crv_cut + expense_cut
+                remaining = total_giving - total_deduction
+                total_remaining_cash += remaining
+
+                breakdown.extend([
+                    {"date": formatted_date, "type": "Offering(Tithes) - 10%", "amount": tithe_cut, "label": ""},
+                    {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
+                    {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
+                ])
+            elif category in ["fp", "hor"]:
+                tithe_cut = total_giving * 0.10
+                hq_cut = total_giving * 0.45
+                expense_cut = total_expenses
+                total_deduction = tithe_cut + hq_cut + expense_cut
+                remaining = total_giving - total_deduction
+                total_remaining_cash += remaining
+
+                breakdown.extend([
+                    {"date": formatted_date, "type": f"{category.upper()}(Tithes) - 10%", "amount": tithe_cut, "label": ""},
+                    {"date": formatted_date, "type": f"{category.upper()}(HQ) - 45%", "amount": hq_cut, "label": ""},
+                    {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
+                ])
+            elif category == "sundayschool":
+                tithe_cut = total_giving * 0.10
+                expense_cut = total_expenses
+                total_deduction = tithe_cut + expense_cut
+                remaining = total_giving - total_deduction
+                total_remaining_cash += remaining
+
+                breakdown.extend([
+                    {"date": formatted_date, "type": "Sunday School(Tithes) - 10%", "amount": tithe_cut, "label": ""},
+                    {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
+                ])
+            elif category in ["sfc", "ph"]:
+                hq_cut = total_giving
+                total_deduction = hq_cut
+                remaining = 0
+                total_remaining_cash += 0
+
+                breakdown.append({
+                    "date": formatted_date,
+                    "type": f"{category.upper()}(HQ) - 100%",
+                    "amount": hq_cut,
+                    "label": ""
+                })
+            else:
+                expense_cut = total_expenses
+                total_deduction = expense_cut
+                remaining = total_giving - expense_cut
+                total_remaining_cash += remaining
+
+                breakdown.append({
+                    "date": formatted_date,
+                    "type": "Expenses",
+                    "amount": expense_cut,
+                    "label": ""
+                })
+
+            breakdown.insert(1, {
+                "date": formatted_date,
+                "type": "Total Deduction",
+                "amount": total_deduction,
+                "label": "",
+                "total_expenses": total_deduction,
+                "remaining": remaining
+            })
+
+            history.extend(breakdown)
+
+        history.append({
+            "date": "-",
+            "type": "Cash on Hand",
+            "amount": total_remaining_cash,
             "label": ""
         })
+        return jsonify(history)
 
-        if category == "tithes":
-            tithes_cut = total_giving * 0.10
-            offering_cut = total_giving * 0.30
-            crv_cut = total_giving * 0.10
-            pastor_cut = total_giving - (tithes_cut + offering_cut + crv_cut)
+    elif category in derived_categories:
+        result = []
+        for date in all_dates:
+            entry_docs = list(mongo.db.entries.find({"date": date}))
+            formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
 
-            total_deduction = tithes_cut + offering_cut + crv_cut + pastor_cut
-            remaining = 0  # Fully distributed
+            # Totals per source fund
+            tithes_total = sum(get_float(e.get("tithes", 0)) for e in entry_docs)
+            offering_total = sum(get_float(e.get("offering", 0)) for e in entry_docs)
+            fp_total = sum(get_float(e.get("fp", 0)) for e in entry_docs)
+            hor_total = sum(get_float(e.get("hor", 0)) for e in entry_docs)
+            sundayschool_total = sum(get_float(e.get("sundayschool", 0)) for e in entry_docs)
 
-            breakdown.extend([
-                {"date": formatted_date, "type": "Tithes(Tithes) - 10%", "amount": tithes_cut, "label": ""},
-                {"date": formatted_date, "type": "Tithes(Offering) - 30%", "amount": offering_cut, "label": ""},
-                {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
-                {"date": formatted_date, "type": "For Pastor - 50%", "amount": pastor_cut, "label": ""}
-            ])
+            derived_amount = 0
+            source_label = ""
 
+            if category == "tithes(tithes)":
+                derived_amount = tithes_total * 0.10
+                source_label = "10% of Tithes"
+            elif category == "offering(tithes)":
+                derived_amount = offering_total * 0.10
+                source_label = "10% of Offering"
+            elif category == "fp(tithes)":
+                derived_amount = fp_total * 0.10
+                source_label = "10% of FP"
+            elif category == "hor(tithes)":
+                derived_amount = hor_total * 0.10
+                source_label = "10% of HOR"
+            elif category == "sundayschool(tithes)":
+                derived_amount = sundayschool_total * 0.10
+                source_label = "10% of Sunday School"
+            elif category == "crv":
+                tithes_crv = tithes_total * 0.10
+                offering_crv = offering_total * 0.10
+                derived_amount = tithes_crv + offering_crv
+                source_label = f"Tithes(CRV): ₱{tithes_crv:,.2f}, Offering(CRV): ₱{offering_crv:,.2f}"
+            elif category == "fp(hq)":
+                derived_amount = fp_total * 0.45
+                source_label = "45% of FP"
+            elif category == "hor(hq)":
+                derived_amount = hor_total * 0.45
+                source_label = "45% of HOR"
 
-        elif category == "offering":
-            tithe_cut = total_giving * 0.10
-            crv_cut = total_giving * 0.10
-            expense_cut = total_expenses
+            if derived_amount > 0:
+                result.append({
+                    "date": formatted_date,
+                    "type": category.upper(),
+                    "amount": derived_amount,
+                    "label": source_label
+                })
 
-            total_deduction = tithe_cut + crv_cut + expense_cut
-            remaining = total_giving - total_deduction
-            total_remaining_cash += remaining
-
-            breakdown.extend([
-                {"date": formatted_date, "type": "Offering(Tithes) - 10%", "amount": tithe_cut, "label": ""},
-                {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
-                {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
-            ])
-
-        elif category in ["fp", "hor"]:
-            tithe_cut = total_giving * 0.10
-            hq_cut = total_giving * 0.45
-            expense_cut = total_expenses
-
-            total_deduction = tithe_cut + hq_cut + expense_cut
-            remaining = total_giving - total_deduction
-            total_remaining_cash += remaining
-
-            breakdown.extend([
-                {"date": formatted_date, "type": f"{category.upper()}(Tithes) - 10%", "amount": tithe_cut, "label": ""},
-                {"date": formatted_date, "type": f"{category.upper()}(HQ) - 45%", "amount": hq_cut, "label": ""},
-                {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
-            ])
-
-        elif category == "sundayschool":
-            tithe_cut = total_giving * 0.10
-            expense_cut = total_expenses
-
-            total_deduction = tithe_cut + expense_cut
-            remaining = total_giving - total_deduction
-            total_remaining_cash += remaining
-
-            breakdown.extend([
-                {"date": formatted_date, "type": "Sunday School(Tithes) - 10%", "amount": tithe_cut, "label": ""},
-                {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
-            ])
-
-        elif category in ["sfc", "ph"]:
-            hq_cut = total_giving
-            total_deduction = hq_cut
-            remaining = 0
-            total_remaining_cash += hq_cut
-
-            breakdown.append({
-                "date": formatted_date,
-                "type": f"{category.upper()}(HQ) - 100%",
-                "amount": hq_cut,
-                "label": ""
-            })
-
-        else:
-            expense_cut = total_expenses
-            total_deduction = expense_cut
-            remaining = total_giving - expense_cut
-            total_remaining_cash += remaining
-
-            breakdown.append({
-                "date": formatted_date,
-                "type": "Expenses",
-                "amount": expense_cut,
-                "label": ""
-            })
-
-        # Insert Total Deduction (shown in orange) and Remaining
-        breakdown.insert(1, {
-            "date": formatted_date,
-            "type": "Total Deduction",
-            "amount": total_deduction,
-            "label": "",
-            "total_expenses": total_deduction,
-            "remaining": remaining
+        # Add Cash on Hand (Total of derived)
+        result.append({
+            "date": "-",
+            "type": "Cash on Hand",
+            "amount": sum(item["amount"] for item in result),
+            "label": ""
         })
-
-        history.extend(breakdown)
-
-    # Final cash on hand line
-    history.append({
-        "date": "-",
-        "type": "Cash on Hand",
-        "amount": total_remaining_cash,
-        "label": ""
-    })
-
-    return jsonify(history)
+        return jsonify(result)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -421,6 +472,7 @@ def login():
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
