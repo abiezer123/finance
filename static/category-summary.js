@@ -70,7 +70,7 @@ expenseForm.addEventListener("submit", async (e) => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    const res = await fetch("/add-expense", {
+    const res = await fetch("/api/manual-category-expense", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -86,15 +86,19 @@ expenseForm.addEventListener("submit", async (e) => {
     if (res.ok) {
         modal.style.display = "none";
         expenseForm.reset();
-        fetchCategoryData(currentCategory); // Refresh table
+        fetchCategoryData(currentCategory); // <-- ensure this refreshes the table!
     } else {
-        alert("Failed to add expense.");
+        alert("Failed to add manual expense.");
     }
+    console.log("Submitting manual expense...");
+
 });
+
+
 
 // Fetch and render category data
 async function fetchCategoryData(category) {
-    const res = await fetch(`/api/category-history/${category}`);
+    const res = await fetch(`/api/category-history/${encodeURIComponent(category)}`);
     const data = await res.json();
 
     data.sort((a, b) => {
@@ -150,12 +154,13 @@ async function fetchCategoryData(category) {
             <td>${expenses}</td>
             <td>${remaining}</td>
             <td>
-            ${entry.source === "manual"
-                ? `<button class="delete-btn" data-id="${entry._id}">🗑️</button>`
-                : ""}
+                ${entry.source === "manual"
+                ? `<button class="delete-btn" data-id="${entry._id.$oid || entry._id}">🗑️</button>`
+                : "-"}
             </td>
-
         `;
+
+
         tableBody.appendChild(tr);
         if (entry.source === "manual") {
             tr.querySelector(".delete-btn").addEventListener("click", async () => {
@@ -185,6 +190,72 @@ categorySelect.addEventListener("change", () => {
     currentCategory = categorySelect.value;
     fetchCategoryData(currentCategory);
 });
+
+// function renderCategoryTable(data, selectedCategory) {
+//     const tableBody = document.getElementById("category-table-body");
+//     const cashOnHandDisplay = document.getElementById("cash-on-hand");
+
+//     tableBody.innerHTML = ""; // Clear old rows
+//     let cashOnHand = 0;
+
+//     data.forEach(entry => {
+//         const row = document.createElement("tr");
+
+//         const dateCell = document.createElement("td");
+//         dateCell.textContent = entry.date;
+//         row.appendChild(dateCell);
+
+//         const typeCell = document.createElement("td");
+//         typeCell.textContent = entry.type;
+//         row.appendChild(typeCell);
+
+//         const amountCell = document.createElement("td");
+//         amountCell.textContent = `₱${parseFloat(entry.amount || 0).toFixed(2)}`;
+//         row.appendChild(amountCell);
+
+//         const labelCell = document.createElement("td");
+//         labelCell.textContent = entry.label || "";
+//         row.appendChild(labelCell);
+
+//         const totalExpensesCell = document.createElement("td");
+//         totalExpensesCell.textContent = entry.total_expenses !== undefined
+//             ? `₱${parseFloat(entry.total_expenses || 0).toFixed(2)}`
+//             : "-";
+//         row.appendChild(totalExpensesCell);
+
+//         const remainingCell = document.createElement("td");
+//         remainingCell.textContent = entry.remaining !== undefined
+//             ? `₱${parseFloat(entry.remaining || 0).toFixed(2)}`
+//             : "-";
+//         row.appendChild(remainingCell);
+
+//         // ACTION column (only show delete button for manual entries)
+//         const actionCell = document.createElement("td");
+
+//         if (entry.label === "Added manually" || entry.source === "manual") {
+//             const deleteBtn = document.createElement("button");
+//             deleteBtn.textContent = "Delete";
+//             deleteBtn.classList.add("delete-btn");
+//             deleteBtn.addEventListener("click", () => {
+//                 deleteManualExpense(entry); // Implement this function separately
+//             });
+//             actionCell.appendChild(deleteBtn);
+//         } else {
+//             actionCell.textContent = "-";
+//         }
+
+//         row.appendChild(actionCell);
+
+//         tableBody.appendChild(row);
+
+//         if (entry.type === "Cash on Hand") {
+//             cashOnHand = entry.amount || 0;
+//         }
+//     });
+
+//     // Update Cash on Hand display
+//     cashOnHandDisplay.textContent = `Cash on Hand: ₱${parseFloat(cashOnHand).toFixed(2)}`;
+// }
 
 // Initial load
 window.addEventListener("DOMContentLoaded", () => {
