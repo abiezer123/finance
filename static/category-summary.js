@@ -17,9 +17,20 @@ const allCategories = [
     "fp(tithes)", "hor(tithes)", "sundayschool(tithes)", "crv",
     "fp(hq)", "hor(hq)", "sfc", "ph", "amd"
 ];
+const expenseDeletableCategories = [
+    "offering", "fp", "hor", "soc", "sundayschool",
+    "for_visitor", "others", "amd", "crv"
+];
+
 
 let currentCategory = "";
 
+function getEntryId(entry) {
+    if (typeof entry._id === "object" && entry._id.$oid) {
+        return entry._id.$oid;
+    }
+    return entry._id;
+}
 // Populate category dropdown in modal
 function populateExpenseDropdown() {
     modalCategorySelect.innerHTML = "";
@@ -144,6 +155,7 @@ async function fetchCategoryData(category) {
 
         const expenses = entry.total_expenses !== undefined ? `₱${parseFloat(entry.total_expenses).toFixed(2)}` : "-";
         const remaining = entry.remaining !== undefined ? `₱${parseFloat(entry.remaining).toFixed(2)}` : "-";
+        const isDeletable = expenseDeletableCategories.includes(currentCategory) && entry.label;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -154,30 +166,30 @@ async function fetchCategoryData(category) {
             <td>${expenses}</td>
             <td>${remaining}</td>
             <td>
-                ${entry.source === "manual"
-                ? `<button class="delete-btn" data-id="${entry._id.$oid || entry._id}">🗑️</button>`
-                : "-"}
+                ${isDeletable ? `<button class="delete-btn" data-id="${getEntryId(entry)}">🗑️</button>` : "-"}
             </td>
         `;
-
-
-        tableBody.appendChild(tr);
-        if (entry.source === "manual") {
-            tr.querySelector(".delete-btn").addEventListener("click", async () => {
+        if (isDeletable) {
+            const deleteBtn = tr.querySelector(".delete-btn");
+            deleteBtn.addEventListener("click", async () => {
                 const confirmDelete = confirm("Delete this expense?");
                 if (!confirmDelete) return;
 
-                const res = await fetch(`/delete-expense/${entry._id}`, {
+                const res = await fetch(`/delete-expense/${getEntryId(entry)}`, {
                     method: "DELETE",
                 });
 
                 if (res.ok) {
-                    fetchCategoryData(currentCategory); // Refresh table
+                    fetchCategoryData(currentCategory);
                 } else {
                     alert("Failed to delete expense.");
                 }
             });
         }
+
+
+
+        tableBody.appendChild(tr);
 
 
     });
