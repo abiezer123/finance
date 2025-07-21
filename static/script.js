@@ -91,25 +91,33 @@ document.addEventListener("DOMContentLoaded", () => {
         expense.date = document.getElementById("entry-date").value;
 
         try {
-            const res = await fetch("/add-expense", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(expense)
-            });
-
-            if (res.ok) {
-                modal.style.display = "none";
-                expenseForm.reset();
-                fetchAndUpdateTable(expense.date);
-                loadSummaryWithExpenses();
-                updateCashOnHand();
+            if (editingExpenseId) {
+                // Edit
+                const res = await fetch(`/edit-expense/${editingExpenseId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams(expense)
+                });
+                if (!res.ok) throw new Error("Failed to edit expense");
+            } else {
+                // Add
+                const res = await fetch("/add-expense", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(expense)
+                });
+                if (!res.ok) throw new Error("Failed to add expense");
             }
-            else {
-                alert("Failed to add expense.");
-            }
+            modal.style.display = "none";
+            expenseForm.reset();
+            loadSummaryWithExpenses();
+            updateCashOnHand();
         } catch (err) {
-            console.error("Expense add error:", err);
+            alert(err.message);
+            console.error("Expense submit error:", err);
         }
+        editingExpenseId = null;
+        document.querySelector("#expenses-modal h3").textContent = "Add Expense";
     });
 });
 
@@ -181,8 +189,8 @@ function updateTable(data) {
             <td>${row.others ? `₱${parseFloat(row.others).toFixed(2)} (${row.others_label || "N/A"})` : ""}</td>
             <td><strong>${total ? `₱${total.toFixed(2)}` : ""}<strong></td>
             <td>
-            <button onclick="editEntry(${index})" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; cursor: pointer;">Edit</button>
-            <button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button>
+                <button onclick="editEntry('${row._id}')" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; cursor: pointer;">Edit</button>
+                <button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button>
             </td>
         `;
         tableBody.appendChild(tr);
@@ -211,6 +219,40 @@ function updateTable(data) {
     document.getElementById("overall-income-total").textContent = `Overall: ₱${totalIncome.toLocaleString()}`;
 }
 
+//editing entry
+let editingEntryId = null;
+
+function editEntry(id) {
+    fetch(`/api/entries?date=${document.getElementById("entry-date").value}`)
+        .then(res => res.json())
+        .then(entries => {
+            const entry = entries.find(e => e._id === id);
+            if (!entry) return;
+            editingEntryId = id;
+            document.getElementById("form-date").value = entry.date || "";
+            document.getElementById("name").value = entry.name || "";
+            document.getElementById("tithes").value = entry.tithes || "";
+            document.getElementById("offering").value = entry.offering || "";
+            document.getElementById("sfc").value = entry.sfc || "";
+            document.getElementById("fp").value = entry.fp || "";
+            document.getElementById("ph").value = entry.ph || "";
+            document.getElementById("hor").value = entry.hor || "";
+            document.getElementById("soc").value = entry.soc || "";
+            document.getElementById("sundayschool").value = entry.sundayschool || "";
+            document.getElementById("for_visitor").value = entry.for_visitor || "";
+            document.getElementById("amd").value = entry.amd || "";
+            document.getElementById("others").value = entry.others || "";
+            document.getElementById("other-label").value = entry.others_label || "";
+            // Change form action and button text
+            document.getElementById("offering-form").action = `/edit/${id}`;
+            document.querySelector("#offering-form button[type='submit']").textContent = "Update Entry";
+            
+            // Scroll to the form
+            document.getElementById("offering-form").scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+}
+
+
 // Delete logic
 function confirmDelete(index) {
     const selectedDate = document.getElementById("entry-date").value;
@@ -224,7 +266,7 @@ function confirmDelete(index) {
         .then(() => {
             fetchAndUpdateTable(selectedDate);
             loadSummaryWithExpenses();
-            updateCashOnHand(); // ✅ Add this
+            updateCashOnHand();
         })
         .catch(err => console.error("Delete error:", err));
 }
@@ -286,8 +328,10 @@ async function loadSummaryWithExpenses() {
                 row += `<td></td>`;
             }
         });
-        const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Delete</button>`;
-        row += `<td>${deleteBtn}</td></tr>`;
+        const editBtn = `<button onclick="openEditExpenseModal('${e._id}')" style="background:#3498db; color: white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Edit</button>`;
+const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Delete</button>`;
+row += `<td>${editBtn} ${deleteBtn}</td></tr>`;
+
         summaryBody.innerHTML += row;
     });
 
@@ -320,7 +364,71 @@ async function loadSummaryWithExpenses() {
 
 }
 
+//Editing Expenses 
+let editingExpenseId = null;
 
+// Open modal for adding
+function openAddExpenseModal() {
+    editingExpenseId = null;
+    document.querySelector("#expenses-modal h3").textContent = "Add Expense";
+    document.querySelector("#expense-form").reset();
+    document.getElementById("expenses-modal").style.display = "block";
+}
+
+// Open modal for editing
+function openEditExpenseModal(id) {
+    const date = document.getElementById("entry-date").value;
+    fetch(`/api/expenses?date=${date}`)
+        .then(res => res.json())
+        .then(expenses => {
+            const expense = expenses.find(e => e._id === id);
+            if (!expense) return;
+            editingExpenseId = expense._id;
+            document.querySelector("#expenses-modal h3").textContent = "Edit Expense";
+            document.querySelector("#expense-form [name='amount']").value = expense.amount;
+            document.querySelector("#expense-form [name='label']").value = expense.label;
+            document.querySelector("#expense-form [name='from']").value = expense.from;
+            document.getElementById("expenses-modal").style.display = "block";
+        });
+}
+
+// Handle form submit
+document.getElementById("expense-form").onsubmit = function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+        amount: form.amount.value,
+        label: form.label.value,
+        from: form.from.value,
+        date: document.getElementById("entry-date").value
+    };
+    if (editingExpenseId) {
+        // Edit
+        fetch(`/edit-expense/${editingExpenseId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(data)
+        }).then(() => {
+            document.getElementById("expenses-modal").style.display = "none";
+            loadSummaryWithExpenses();
+        });
+    } else {
+        // Add
+        fetch("/add-expense", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(() => {
+            document.getElementById("expenses-modal").style.display = "none";
+            loadSummaryWithExpenses();
+        });
+    }
+};
+
+// Close modal
+document.getElementById("close-expenses-modal").onclick = function() {
+    document.getElementById("expenses-modal").style.display = "none";
+};
 // Delete expense
 function deleteExpense(id) {
     const confirmed = confirm("Are you sure you want to delete this expense?");
@@ -453,7 +561,7 @@ function updateCashOnHand() {
 
             const formattedCash = netCash.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 2    
             });
 
             document.getElementById("offering-cash").innerText = `Cash on Hand (Offering): ₱${formattedCash}`;

@@ -67,6 +67,8 @@
         <br><br>
 
         <h3>Entries for <span id="selected-date"></span></h3>
+
+        <!-- Table for Entries -->
         <div class="table-wrapper">
             <table id="entries-table">
                 <thead>
@@ -105,7 +107,8 @@
                         <td>{{ entry.amd }}</td>
                         <td>{{ entry.others }} ({{ entry.others_label or 'N/A' }})</td>
                         <td>
-                            <!-- ✅ Place your delete button here -->
+                            
+                            
                             <button onclick="deleteEntry('{{ entry._id }}')"
                                 style="background-color:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
                                 Delete
@@ -144,7 +147,8 @@
             style="background-color: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
             Add Expense
         </button>
-        <!-- Unified Summary & Expenses Table -->
+
+        <!-- Table for Expenses -->
         <div class="table-wrapper">
             <table id="summary-table">
                 <thead>

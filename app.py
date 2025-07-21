@@ -118,26 +118,38 @@ def delete(id):
     mongo.db.entries.delete_one({"_id": ObjectId(id)})
     return redirect(request.referrer)
 
+# Edit Entry
 @app.route("/edit/<id>", methods=["POST"])
-def edit(id):
+def edit_entry(id):
     updated = {
         "name": request.form["name"],
-        "tithes": get_float(request.form.get("tithes")),
-        "offering": get_float(request.form.get("offering")),
-        "sfc": get_float(request.form.get("sfc")),
-        "fp": get_float(request.form.get("fp")),
-        "ph": get_float(request.form.get("ph")),
-        "hor": get_float(request.form.get("hor")),
-        "soc": get_float(request.form.get("soc")),
-        "others": get_float(request.form.get("others")),
-        "others_label": request.form.get("others_label"),
-        "sundayschool": get_float(request.form.get("sundayschool")),
-        "for_visitor": get_float(request.form.get("for_visitor")),
-        "amd": get_float(request.form.get("amd"))
-
+        "tithes": float(request.form.get("tithes", 0)),
+        "offering": float(request.form.get("offering", 0)),
+        "sfc": float(request.form.get("sfc", 0)),
+        "fp": float(request.form.get("fp", 0)),
+        "ph": float(request.form.get("ph", 0)),
+        "hor": float(request.form.get("hor", 0)),
+        "soc": float(request.form.get("soc", 0)),
+        "others": float(request.form.get("others", 0)),
+        "others_label": request.form.get("others_label", ""),
+        "sundayschool": float(request.form.get("sundayschool", 0)),
+        "for_visitor": float(request.form.get("for_visitor", 0)),
+        "amd": float(request.form.get("amd", 0)),
+        "date": request.form.get("date")
     }
-
     mongo.db.entries.update_one({"_id": ObjectId(id)}, {"$set": updated})
+    return redirect(request.referrer)
+
+# Edit Expense
+@app.route("/edit-expense/<id>", methods=["POST"])
+def edit_expense(id):
+    updated = {
+        "amount": float(request.form.get("amount", 0)),
+        "label": request.form.get("label"),
+        "from": request.form.get("from"),
+        "date": request.form.get("date")
+    }
+    mongo.db.expenses.update_one({"_id": ObjectId(id)}, {"$set": updated})
     return redirect(request.referrer)
 
 @app.route("/download/<date>")
