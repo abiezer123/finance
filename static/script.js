@@ -188,9 +188,9 @@ function updateTable(data) {
             <td>${row.amd ? `₱${parseFloat(row.amd).toFixed(2)}` : ""}</td>
             <td>${row.others ? `₱${parseFloat(row.others).toFixed(2)} (${row.others_label || "N/A"})` : ""}</td>
             <td><strong>${total ? `₱${total.toFixed(2)}` : ""}<strong></td>
-            <td style="display:flex; gap:10px; justify-content:center;">
-                <button onclick="editEntry('${row._id}')" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; flex:1;">Edit</button>    
-                <button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; flex:1;">Delete</button>
+            <td style="display:flex; flex-direction:column; gap:12px; justify-content:center; min-width:110px;">
+                <button onclick="editEntry('${row._id}')" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+                <button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
             </td>
         `;
         tableBody.appendChild(tr);
@@ -328,9 +328,9 @@ async function loadSummaryWithExpenses() {
                 row += `<td></td>`;
             }
         });
-        const editBtn = `<button onclick="openEditExpenseModal('${e._id}')" style="background:#3498db; color: white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; flex:1;">Edit</button>`;
-        const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; flex:1;">Delete</button>`;
-        row += `<td style="display:flex; gap:10px; justify-content:center;">${editBtn}${deleteBtn}</td></tr>`;
+        const editBtn = `<button onclick="openEditExpenseModal('${e._id}')" style="background:#3498db; color: white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Edit</button>`;
+        const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Delete</button>`;
+        row += `<td style="display:flex; flex-direction:column; gap:12px; justify-content:center; min-width:110px;">${editBtn}${deleteBtn}</td></tr>`;
 
         summaryBody.innerHTML += row;
     });

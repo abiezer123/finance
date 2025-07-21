@@ -191,6 +191,7 @@ td {
     padding: 10px;
     text-align: center;
     border-bottom: 1px solid #e1e4e8;
+    vertical-align: middle;
 }
 
 tfoot {
@@ -376,4 +377,12 @@ hr {
         width: 90%;
         max-width: 300px;
     }
+}
+
+td.actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    min-width: 110px;
 }
