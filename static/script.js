@@ -24,6 +24,99 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    const calcModal = document.getElementById("calculator-modal");
+    const openCalcBtn = document.getElementById("open-calculator");
+    const closeCalcBtn = document.getElementById("close-calculator-modal");
+    const calcDisplay = document.getElementById("calc-display");
+    const calcHistory = document.getElementById("calc-history");
+    let calcValue = "0";
+    let calcOperator = "";
+    let calcOperand = null;
+    let calcReset = false;
+
+    function updateCalcDisplay() {
+        calcDisplay.value = calcValue;
+        if (calcOperator && calcOperand !== null) {
+            calcHistory.textContent = `${calcOperand} ${calcOperator}`;
+        } else {
+            calcHistory.textContent = "";
+        }
+    }
+
+    if (openCalcBtn && calcModal) {
+        openCalcBtn.onclick = () => { calcModal.style.display = "flex"; };
+    }
+    if (closeCalcBtn && calcModal) {
+        closeCalcBtn.onclick = () => { calcModal.style.display = "none"; };
+    }
+    window.addEventListener("click", function(e) {
+        if (e.target === calcModal) calcModal.style.display = "none";
+    });
+
+    document.querySelectorAll(".calc-btn").forEach(btn => {
+        btn.onclick = function() {
+            const action = btn.getAttribute("data-action");
+            if (!isNaN(action)) { // Number
+                if (calcValue === "0" || calcReset) {
+                    calcValue = action;
+                    calcReset = false;
+                } else {
+                    calcValue += action;
+                }
+            } else if (action === ".") {
+                if (!calcValue.includes(".")) calcValue += ".";
+            } else if (["+", "-", "*", "/"].includes(action)) {
+                if (calcOperator && calcOperand !== null && !calcReset) {
+                    // Chain operations
+                    let result = 0;
+                    const curr = parseFloat(calcValue);
+                    switch (calcOperator) {
+                        case "+": result = calcOperand + curr; break;
+                        case "-": result = calcOperand - curr; break;
+                        case "*": result = calcOperand * curr; break;
+                        case "/": result = curr === 0 ? "Error" : calcOperand / curr; break;
+                    }
+                    calcOperand = (result === "Error") ? 0 : result;
+                    calcValue = (result === "Error") ? "Error" : calcOperand.toString();
+                } else {
+                    calcOperand = parseFloat(calcValue);
+                }
+                calcOperator = action;
+                calcReset = true;
+            } else if (action === "=") {
+                if (calcOperator && calcOperand !== null) {
+                    let result = 0;
+                    const curr = parseFloat(calcValue);
+                    switch (calcOperator) {
+                        case "+": result = calcOperand + curr; break;
+                        case "-": result = calcOperand - curr; break;
+                        case "*": result = calcOperand * curr; break;
+                        case "/": result = curr === 0 ? "Error" : calcOperand / curr; break;
+                    }
+                    calcHistory.textContent = `${calcOperand} ${calcOperator} ${curr} =`;
+                    calcValue = (result === "Error") ? "Error" : result.toString();
+                    calcOperator = "";
+                    calcOperand = null;
+                    calcReset = true;
+                }
+            } else if (action === "clear") {
+                calcValue = "0";
+                calcOperator = "";
+                calcOperand = null;
+                calcReset = false;
+                calcHistory.textContent = "";
+            } else if (action === "back") {
+                if (calcValue.length > 1) {
+                    calcValue = calcValue.slice(0, -1);
+                } else {
+                    calcValue = "0";
+                }
+            }
+            updateCalcDisplay();
+        };
+    });
+    updateCalcDisplay();
+
     const urlParams = new URLSearchParams(window.location.search);
     const selectedDate = urlParams.get("date") || new Date().toISOString().split("T")[0];
 
