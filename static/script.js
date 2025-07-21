@@ -1,12 +1,5 @@
 let entries = {};
 let editIndex = null;
-
-const categories = [
-    "tithes", "offering", "sfc", "fp", "ph", "hor",
-    "soc", "sundayschool", "for_visitor", "others"
-];
-
-
 let tableBody;
 let tfoot;
 let modal;
@@ -132,7 +125,7 @@ async function fetchAndUpdateTable(date) {
     }
 }
 
-// Update the table
+// for Entries Table
 function updateTable(data) {
     if (!tableBody || !tfoot) return;
 
@@ -243,6 +236,13 @@ function formatDatePretty(dateString) {
 }
 
 // Load summary and expenses table
+
+const categories = [
+    "offering", "fp", "hor",
+    "soc", "sundayschool", "for_visitor", "amd", "others"
+];
+
+
 async function loadSummaryWithExpenses() {
 
     const date = document.getElementById("entry-date").value;
@@ -278,7 +278,7 @@ async function loadSummaryWithExpenses() {
             expenseTotals[e.from] += parseFloat(e.amount) || 0;
         }
 
-        let row = `<tr><td>${i + 1}</td><td>Expense</td>`;
+        let row = `<tr><td>${i + 1}</td><td>-</td>`;
         categories.forEach(cat => {
             if (cat === e.from) {
                 row += `<td style="color:red;">-₱${parseFloat(e.amount).toFixed(2)} (${e.label})</td>`;
