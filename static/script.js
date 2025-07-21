@@ -158,6 +158,20 @@ function updateTable(data) {
         totals.amd += row.amd || 0;
 
         const tr = document.createElement("tr");
+        
+        const total =
+            parseFloat(row.tithes || 0) +
+            parseFloat(row.offering || 0) +
+            parseFloat(row.sfc || 0) +
+            parseFloat(row.fp || 0) +
+            parseFloat(row.ph || 0) +
+            parseFloat(row.hor || 0) +
+            parseFloat(row.soc || 0) +
+            parseFloat(row.sundayschool || 0) +
+            parseFloat(row.for_visitor || 0) +
+            parseFloat(row.amd || 0) +
+            parseFloat(row.others || 0);
+
         tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${row.name}</td>
@@ -172,7 +186,11 @@ function updateTable(data) {
             <td>${row.for_visitor ? `₱${parseFloat(row.for_visitor).toFixed(2)}` : ""}</td>
             <td>${row.amd ? `₱${parseFloat(row.amd).toFixed(2)}` : ""}</td>
             <td>${row.others ? `₱${parseFloat(row.others).toFixed(2)} (${row.others_label || "N/A"})` : ""}</td>
-            <td><button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button></td>
+            <td><strong>${total ? `₱${total.toFixed(2)}` : ""}<strong></td>
+            <td>
+            <button onclick="editEntry(${index})" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; cursor: pointer;">Edit</button>
+            <button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Delete</button>
+            </td>
         `;
         tableBody.appendChild(tr);
     });

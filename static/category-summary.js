@@ -44,16 +44,16 @@ function populateExpenseDropdown() {
     });
 }
 
-// Open modal
-addExpenseBtn.addEventListener("click", () => {
-    if (expenseRestrictedCategories.includes(currentCategory)) {
-        alert("This category does not support direct expense input.");
-        return;
-    }
-    modal.style.display = "block";
-    modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
-    modalCategorySelect.value = currentCategory;
-});
+// // Open modal
+// addExpenseBtn.addEventListener("click", () => {
+//     if (expenseRestrictedCategories.includes(currentCategory)) {
+//         alert("This category does not support direct expense input.");
+//         return;
+//     }
+//     modal.style.display = "block";
+//     modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
+//     modalCategorySelect.value = currentCategory;
+// });
 
 // Close modal
 closeModalBtn.addEventListener("click", () => {
