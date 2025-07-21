@@ -166,7 +166,8 @@ async function fetchCategoryData(category) {
             <td>${expenses}</td>
             <td>${remaining}</td>
             <td>
-                ${isDeletable ? `<button class="delete-btn" data-id="${getEntryId(entry)}">🗑️</button>` : "-"}
+                ${isDeletable ? `<button class="delete-btn" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;" data-id="${getEntryId(entry)}">Delete</button>` : "-"}
+                
             </td>
         `;
         if (isDeletable) {
@@ -202,72 +203,6 @@ categorySelect.addEventListener("change", () => {
     currentCategory = categorySelect.value;
     fetchCategoryData(currentCategory);
 });
-
-// function renderCategoryTable(data, selectedCategory) {
-//     const tableBody = document.getElementById("category-table-body");
-//     const cashOnHandDisplay = document.getElementById("cash-on-hand");
-
-//     tableBody.innerHTML = ""; // Clear old rows
-//     let cashOnHand = 0;
-
-//     data.forEach(entry => {
-//         const row = document.createElement("tr");
-
-//         const dateCell = document.createElement("td");
-//         dateCell.textContent = entry.date;
-//         row.appendChild(dateCell);
-
-//         const typeCell = document.createElement("td");
-//         typeCell.textContent = entry.type;
-//         row.appendChild(typeCell);
-
-//         const amountCell = document.createElement("td");
-//         amountCell.textContent = `₱${parseFloat(entry.amount || 0).toFixed(2)}`;
-//         row.appendChild(amountCell);
-
-//         const labelCell = document.createElement("td");
-//         labelCell.textContent = entry.label || "";
-//         row.appendChild(labelCell);
-
-//         const totalExpensesCell = document.createElement("td");
-//         totalExpensesCell.textContent = entry.total_expenses !== undefined
-//             ? `₱${parseFloat(entry.total_expenses || 0).toFixed(2)}`
-//             : "-";
-//         row.appendChild(totalExpensesCell);
-
-//         const remainingCell = document.createElement("td");
-//         remainingCell.textContent = entry.remaining !== undefined
-//             ? `₱${parseFloat(entry.remaining || 0).toFixed(2)}`
-//             : "-";
-//         row.appendChild(remainingCell);
-
-//         // ACTION column (only show delete button for manual entries)
-//         const actionCell = document.createElement("td");
-
-//         if (entry.label === "Added manually" || entry.source === "manual") {
-//             const deleteBtn = document.createElement("button");
-//             deleteBtn.textContent = "Delete";
-//             deleteBtn.classList.add("delete-btn");
-//             deleteBtn.addEventListener("click", () => {
-//                 deleteManualExpense(entry); // Implement this function separately
-//             });
-//             actionCell.appendChild(deleteBtn);
-//         } else {
-//             actionCell.textContent = "-";
-//         }
-
-//         row.appendChild(actionCell);
-
-//         tableBody.appendChild(row);
-
-//         if (entry.type === "Cash on Hand") {
-//             cashOnHand = entry.amount || 0;
-//         }
-//     });
-
-//     // Update Cash on Hand display
-//     cashOnHandDisplay.textContent = `Cash on Hand: ₱${parseFloat(cashOnHand).toFixed(2)}`;
-// }
 
 // Initial load
 window.addEventListener("DOMContentLoaded", () => {
@@ -323,7 +258,7 @@ window.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".calc-btn").forEach(btn => {
         btn.onclick = function() {
             const action = btn.getAttribute("data-action");
-            if (!isNaN(action)) { // Number
+            if (!isNaN(action)) { 
                 if (calcValue === "0" || calcReset) {
                     calcValue = action;
                     calcReset = false;
