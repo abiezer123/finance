@@ -317,20 +317,6 @@ hr {
     color: white;
 }
 
-@media (max-width: 600px) {
-    #summary-btn-container {
-        text-align: center;
-        margin-top: -10px;
-        margin-bottom: 10px;
-    }
-
-    #summary-btn-container button {
-        display: inline-block;
-        width: 90%;
-        max-width: 300px;
-    }
-}
-
 .text-red {
     color: red;
 }
@@ -347,4 +333,47 @@ hr {
 #alltime-cash {
     font-weight: bold;
     color: #2c3e50;
+}
+@media (min-width: 769px) {
+    .modal-content form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .expense-input {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        box-sizing: border-box;
+        display: block;
+    }
+    .modal-content label {
+        align-self: flex-start;
+        margin-left: 8px;
+    }
+}
+
+@media (min-width: 769px) {
+    .expense-input {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 350px; /* adjust as needed */
+    }
+}
+
+@media (max-width: 600px) {
+    #summary-btn-container {
+        text-align: center;
+        margin-top: -10px;
+        margin-bottom: 10px;
+    }
+
+    #summary-btn-container button {
+        display: inline-block;
+        width: 90%;
+        max-width: 300px;
+    }
 }
