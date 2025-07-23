@@ -147,10 +147,10 @@ window.addEventListener("click", (event) => {
 // Submit expense
 expenseForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const label = document.getElementById("expense-label").value;
     const amount = parseFloat(document.getElementById("expense-amount").value);
     const selectedCat = modalCategorySelect.value;
+    const expenseId = document.getElementById("modal-expense-id").value;
 
     if (!label || isNaN(amount)) {
         alert("Please enter a valid label and amount.");
@@ -159,29 +159,47 @@ expenseForm.addEventListener("submit", async (e) => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    const res = await fetch("/api/manual-category-expense", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            date: today,
-            from: selectedCat,
-            label,
-            amount,
-        }),
-    });
-
-    if (res.ok) {
-        modal.style.display = "none";
-        expenseForm.reset();
-        fetchCategoryData(currentCategory); // <-- ensure this refreshes the table!
+    if (modal.getAttribute("data-mode") === "edit" && expenseId) {
+        // Edit mode
+        const res = await fetch(`/category-summary/edit-expense/${expenseId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount, label }),
+        });
+        if (res.ok) {
+            modal.style.display = "none";
+            expenseForm.reset();
+            fetchCategoryData(currentCategory);
+        } else {
+            alert("Failed to update expense.");
+        }
     } else {
-        alert("Failed to add manual expense.");
-    }
-    console.log("Submitting manual expense...");
+        // Add mode
+        const res = await fetch("/api/manual-expense", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                date: today,
+                from: selectedCat,
+                label,
+                amount,
+            }),
+        });
 
+        if (res.ok) {
+            modal.style.display = "none";
+            expenseForm.reset();
+            fetchCategoryData(currentCategory);
+        } else {
+            alert("Failed to add manual expense.");
+        }
+    }
+
+    modal.removeAttribute("data-mode");
 });
+
 
 
 
@@ -274,31 +292,19 @@ async function fetchCategoryData(category) {
                 }
             });
 
-            editBtn.addEventListener("click", async () => {
-                const newAmount = parseFloat(prompt("Enter new amount:", entry.amount));
-                const newLabel = prompt("Enter new label:", entry.label || "Manual");
+            editBtn.addEventListener("click", () => {
+                modal.style.display = "block";
+                document.getElementById("modal-category-name").textContent = currentCategory;
+                document.getElementById("modal-category-select").value = currentCategory;
+                document.getElementById("expense-label").value = entry.label || "";
+                document.getElementById("expense-amount").value = entry.amount;
+                document.getElementById("modal-expense-id").value = getEntryId(entry);
 
-                if (!isNaN(newAmount)) {
-                    const res = await fetch(`/category-summary/edit-expense/${getEntryId(entry)}`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ amount: newAmount, label: newLabel }),
-                    });
-
-                    if (res.ok) {
-                        fetchCategoryData(currentCategory);
-                    } else {
-                        alert("Failed to edit manual expense.");
-                    }
-                }
+                modal.setAttribute("data-mode", "edit");
             });
-
         }
 
-
-
-
-        tableBody.appendChild(tr);
+        tableBody.appendChild(tr); // ⬅️ make sure this is outside the if-block!
 
 
     });
