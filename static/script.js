@@ -6,6 +6,27 @@ let modal;
 let expenseForm;
 
 document.addEventListener("DOMContentLoaded", () => {
+
+   const scrollBtn = document.getElementById("scroll-calculator-btn");
+    const mainCalcBtn = document.getElementById("open-calculator");
+
+    // Prevent errors if buttons are missing
+    if (!scrollBtn || !mainCalcBtn) return;
+
+    // Show/hide floating button when scrolling
+    window.addEventListener("scroll", function () {
+        if (window.scrollY > 50) {
+            scrollBtn.style.display = "flex";
+        } else {
+            scrollBtn.style.display = "none";
+        }
+    });
+
+    // Trigger calculator on floating button click
+    scrollBtn.addEventListener("click", function () {
+        mainCalcBtn.click();
+    });
+
     const dateInput = document.getElementById("entry-date");
     const selectedDateDisplay = document.getElementById("selected-date");
     const formDateInput = document.getElementById("form-date");
@@ -16,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll(".navbar-links li a");
 
+    
     navLinks.forEach(link => {
         if (link.getAttribute("href") === currentPath) {
             link.classList.add("active");
@@ -664,3 +686,5 @@ function updateCashOnHand() {
             document.getElementById("alltime-cash").innerText = "Cash on Hand (Offering): ₱0.00";
         });
 }
+
+

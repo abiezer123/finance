@@ -48,6 +48,37 @@
 
 
     <main>
+        <button id="scroll-calculator-btn" title="Open Calculator"
+            class="navbar-calc-btn"
+            style="
+                background:#222;
+                color:#f1c40f;
+                border:none;
+                border-radius:50%;
+                width:40px;
+                height:40px;
+                font-size:1.5rem;
+                box-shadow:0 2px 8px #0001;
+                cursor:pointer;
+                display:none; /* hidden initially */
+                align-items:center;
+                justify-content:center;
+                position:fixed;   /* Make it float */
+                top: 20px;        /* Top-right corner */
+                right: 20px;
+                z-index: 9999;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="4" fill="#f1c40f" />
+                <rect x="7" y="7" width="10" height="3" rx="1" fill="#222" />
+                <rect x="7" y="12" width="3" height="3" rx="1" fill="#222" />
+                <rect x="11" y="12" width="3" height="3" rx="1" fill="#222" />
+                <rect x="15" y="12" width="3" height="3" rx="1" fill="#222" />
+                <rect x="7" y="16" width="3" height="3" rx="1" fill="#222" />
+                <rect x="11" y="16" width="3" height="3" rx="1" fill="#222" />
+                <rect x="15" y="16" width="3" height="3" rx="1" fill="#222" />
+            </svg>
+        </button>
+
 
         <h3 id="offering-cash">Cash on Hand (Offering Only): ₱0.00</h3>
 
