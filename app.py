@@ -323,13 +323,9 @@ def alltime_summary():
 @app.route("/category-summary")
 @login_required
 def category_summary():
-    return render_template("category_summary.html", username=session.get('username'))
-
-
-# FIXED Flask endpoint for category history with:
-# - Proper deductions (HQ 45% for fp/hor)
-# - Derived 10% allocations for all derived categories
-# - Cash on Hand for ALL categories
+    username = session.get('username')
+    is_admin = username == "admin"  # or check against a user role from the DB
+    return render_template("category_summary.html", username=username, is_admin=is_admin)
 
 @app.route("/api/category-history/<category>")
 def category_history(category):

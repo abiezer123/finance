@@ -131,10 +131,13 @@
             </div>
         </div>
 
-        <!-- Add this somewhere in your HTML, ideally near the category dropdown or at the top of your table -->
-        <button type="hidden" id="add-expense-btn" style="padding: 8px 16px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        {% if is_admin %}
+        <button id="add-expense-btn" style="padding: 8px 16px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
             + Add Expense
         </button>
+        {% else %}
+        <!-- Hidden for non-admin -->
+        {% endif %}
 
 
 

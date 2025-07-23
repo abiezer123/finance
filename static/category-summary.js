@@ -43,12 +43,16 @@ function populateExpenseDropdown() {
     });
 }
 
-// Open modal
-addExpenseBtn.addEventListener("click", () => {
-    modal.style.display = "block";
-    modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
-    modalCategorySelect.value = currentCategory;
-});
+
+// Open modal (safe check if button exists)
+if (addExpenseBtn) {
+    addExpenseBtn.addEventListener("click", () => {
+        modal.style.display = "block";
+        modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
+        modalCategorySelect.value = currentCategory;
+    });
+}
+
 
 // Close modal
 closeModalBtn.addEventListener("click", () => {
