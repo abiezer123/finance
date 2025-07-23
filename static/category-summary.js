@@ -12,10 +12,10 @@ const addExpenseBtn = document.getElementById("add-expense-btn");
 
 const expenseRestrictedCategories = ["tithes", "sfc", "ph", "amd"];
 const allCategories = [
-    "tithes", "offering", "fp", "hor", "soc", "sundayschool",
+    "tithes", "offering", "fp", "hor", "sundayschool",
     "for_visitor", "others", "tithes(tithes)", "offering(tithes)",
-    "fp(tithes)", "hor(tithes)", "sundayschool(tithes)", "crv",
-    "fp(hq)", "hor(hq)", "sfc", "ph", "amd"
+    "fp(tithes)", "hor(tithes)", "sundayschool(tithes)", 
+    "fp(hq)", "hor(hq)", "soc","sfc", "ph", "amd", "crv"
 ];
 const expenseDeletableCategories = [
     "offering", "fp", "hor", "soc", "sundayschool",
