@@ -382,17 +382,29 @@ def category_history(category):
                     {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
                 ])
             elif category in ["sfc", "ph"]:
-                hq_cut = total_giving
-                total_deduction = hq_cut
-                remaining = 0
-                total_remaining_cash += 0
+                category_total = sum(get_float(e.get(category, 0)) for e in entry_docs)
+                expenses_total = sum(get_float(e.get("amount", 0)) for e in expense_docs)
 
-                breakdown.append({
-                    "date": formatted_date,
-                    "type": f"{category.upper()}(HQ) - 100%",
-                    "amount": hq_cut,
-                    "label": ""
-                })
+                total_remaining_cash += category_total - expenses_total
+
+                if category_total > 0:
+                    breakdown.append({
+                        "date": formatted_date,
+                        "type": f"{category.upper()}(HQ)",
+                        "amount": category_total,
+                        "label": ""
+                    })
+
+                for e in expense_docs:
+                    breakdown.append({
+                        "date": formatted_date,
+                        "type": "Manual Expenses",
+                        "amount": get_float(e.get("amount", 0)),
+                        "label": e.get("label", ""),
+                        "_id": str(e.get("_id")),
+                        "source": "manual"
+                    })
+
             else:
                 expense_cut = total_expenses
                 total_deduction = expense_cut
