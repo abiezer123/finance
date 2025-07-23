@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 from flask import session
 from functools import wraps
+import uuid
 
 
 app = Flask(__name__)
@@ -18,10 +19,19 @@ app.secret_key = "123"
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'username' not in session:
+        username = session.get('username')
+        session_token = session.get('session_token')
+
+        if not username or not session_token:
             return redirect(url_for('login'))
+
+        user = users_collection.find_one({'username': username})
+        if not user or user.get('session_token') != session_token:
+            return redirect(url_for('login')) 
+
         return f(*args, **kwargs)
     return decorated_function
+
 
 def get_float(value):
     try:
@@ -462,8 +472,12 @@ def category_history(category):
             })
 
         else:
+            total_derived = 0
+            total_manual_expense = 0
+
             for date in all_dates:
                 entry_docs = list(mongo.db.entries.find({"date": date}))
+                expense_docs = list(mongo.db.expenses.find({"date": date, "from": category}))
                 formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
 
                 tithes_total = sum(get_float(e.get("tithes", 0)) for e in entry_docs)
@@ -490,17 +504,42 @@ def category_history(category):
                 elif category == "sundayschool(tithes)":
                     derived_amount = sundayschool_total * 0.10
                     source_label = "10% of Sunday School"
+                elif category == "fp(hq)":
+                    derived_amount = fp_total * 0.45
+                    source_label = "45% of FP"
+                elif category == "hor(hq)":
+                    derived_amount = hor_total * 0.45
+                    source_label = "45% of HOR"
 
-                result.append({
-                    "date": formatted_date,
-                    "type": category.upper(),
-                    "amount": derived_amount,
-                    "label": source_label
-                })
+                total_derived += derived_amount
+
+                if derived_amount > 0:
+                    result.append({
+                        "date": formatted_date,
+                        "type": category.upper(),
+                        "amount": derived_amount,
+                        "label": source_label
+                    })
+
+                expense_total = sum(get_float(e.get("amount", 0)) for e in expense_docs)
+                total_manual_expense += expense_total
+
+                for e in expense_docs:
+                    result.append({
+                        "date": formatted_date,
+                        "type": "Manual Expenses",
+                        "amount": get_float(e.get("amount", 0)),
+                        "label": e.get("label", "Manual")
+                    })
+
+            result.append({
+                "date": "-",
+                "type": "Cash on Hand",
+                "amount": total_derived - total_manual_expense,
+                "label": ""
+            })
 
         return jsonify(result)
-
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -511,10 +550,21 @@ def login():
 
         user = users_collection.find_one({'username': username})
         if user and user.get('password') == password:
+            # Create unique session token per login (per device)
+            session_token = str(uuid.uuid4())
             session['username'] = username
-            return redirect(url_for('index'))  # Redirect to the attendance page
+            session['session_token'] = session_token
+
+            # Save the token in the database for that user
+            users_collection.update_one(
+                {'username': username},
+                {'$set': {'session_token': session_token}}
+            )
+
+            return redirect(url_for('index'))  # Redirect to protected page
         else:
             error = 'Invalid username or password'
+    
     return render_template('login.html', error=error)
 
 @app.route("/api/manual-category-expense", methods=["POST"])
@@ -539,8 +589,9 @@ def add_manual_category_expense():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
+    session.clear()
     return redirect(url_for('login'))
+
 
 @app.route("/delete-expense/<expense_id>", methods=["DELETE"])
 def delete_manual_expense(expense_id):
@@ -549,6 +600,7 @@ def delete_manual_expense(expense_id):
         return jsonify({"success": True})
     else:
         return jsonify({"error": "Not found or not manual"}), 404
+        
 @app.route("/api/manual-expense", methods=["POST"])
 def add_manual_expense():
     data = request.get_json()

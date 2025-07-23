@@ -35,30 +35,108 @@ function getEntryId(entry) {
 function populateExpenseDropdown() {
     modalCategorySelect.innerHTML = "";
     allCategories.forEach(category => {
-        if (!expenseRestrictedCategories.includes(category)) {
-            const option = document.createElement("option");
+       const option = document.createElement("option");
             option.value = category;
             option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
             modalCategorySelect.appendChild(option);
-        }
+        
     });
 }
 
-// // Open modal
-// addExpenseBtn.addEventListener("click", () => {
-//     if (expenseRestrictedCategories.includes(currentCategory)) {
-//         alert("This category does not support direct expense input.");
-//         return;
-//     }
-//     modal.style.display = "block";
-//     modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
-//     modalCategorySelect.value = currentCategory;
-// });
+// Open modal
+addExpenseBtn.addEventListener("click", () => {
+    modal.style.display = "block";
+    modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
+    modalCategorySelect.value = currentCategory;
+});
 
 // Close modal
 closeModalBtn.addEventListener("click", () => {
     modal.style.display = "none";
 });
+
+function addExpense() { 
+    const category = modalCategorySelect.value; 
+    const amount = parseFloat(modalAmount.value); 
+    const label = modalLabel.value || "No label"; const date = modalDate.value || new Date().toISOString().split('T')[0];
+    if (isNaN(amount)) {
+        alert("Please enter a valid amount.");
+        return;
+    }
+
+    database.entries.push({
+        category,
+        amount,
+        label,
+        date,
+        reported: false,
+    });
+    saveDatabase();
+    updateTable();
+    modal.style.display = "none";
+    modalAmount.value = "";
+    modalLabel.value = "";
+}
+
+function editExpense(index, newAmount, newLabel) { 
+    if (isNaN(newAmount)) { alert("Please enter a valid amount."); return; }
+
+    database.entries[index].amount = newAmount;
+    database.entries[index].label = newLabel || database.entries[index].label;
+    saveDatabase();
+    updateTable();
+}
+
+function deleteExpense(index) { database.entries.splice(index, 1); saveDatabase(); updateTable(); }
+ function updateTable() { 
+    const table = document.getElementById('summary-table'); table.innerHTML = ''; // Clear the existing table
+    database.entries.forEach((entry, index) => {
+    const row = document.createElement('tr');
+    const categoryCell = document.createElement('td');
+    const dateCell = document.createElement('td');
+    const amountCell = document.createElement('td');
+    const labelCell = document.createElement('td');
+    const actionCell = document.createElement('td');
+
+    categoryCell.textContent = entry.category;
+    dateCell.textContent = entry.date;
+    amountCell.textContent = entry.amount;
+    labelCell.textContent = entry.label;
+
+    // Edit button
+    const editButton = document.createElement('button');
+    editButton.textContent = 'Edit';
+    editButton.onclick = () => {
+        const newAmount = parseFloat(prompt("Enter new amount:", entry.amount));
+        const newLabel = prompt("Enter new label:", entry.label);
+        if (newAmount !== null) {
+            editExpense(index, newAmount, newLabel);
+        }
+    };
+
+    // Delete button
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.onclick = () => {
+        if (confirm("Are you sure you want to delete this entry?")) {
+            deleteExpense(index);
+        }
+    };
+
+    actionCell.appendChild(editButton);
+    actionCell.appendChild(deleteButton);
+    row.appendChild(categoryCell);
+    row.appendChild(dateCell);
+    row.appendChild(amountCell);
+    row.appendChild(labelCell);
+    row.appendChild(actionCell);
+    table.appendChild(row);
+});
+
+updateCashOnHand();
+
+ }
+
 
 window.addEventListener("click", (event) => {
     if (event.target === modal) {
@@ -131,7 +209,8 @@ async function fetchCategoryData(category) {
         const derivedInputTypes = [
             "tithes(tithes)", "offering(tithes)", "fp(tithes)", "hor(tithes)", "sundayschool(tithes)",
             "crv", "fp(hq)", "hor(hq)", "sfc", "ph"
-        ];
+        ].map(type => type.toLowerCase());
+
         const isDerivedInput = derivedInputTypes.includes(entry.type.toLowerCase());
 
         let amountClass = 'text-red';
