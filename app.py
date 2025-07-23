@@ -393,6 +393,17 @@ def category_history(category):
                     "amount": hq_cut,
                     "label": ""
                 })
+            elif category == "sundayschool":
+                tithes_cut = total_giving * 0.10
+                remaining = total_giving - tithes_cut - total_expense
+                breakdown.append({
+                    "date": formatted_date,
+                    "type": "SundaySchool(Tithes) - 10%",
+                    "amount": tithes_cut,
+                    "label": ""
+                })
+                breakdown.append({"date": formatted_date, "type": "Expenses", "amount": total_expense, "label": ""})
+            
             else:
                 remaining -= total_expense
                 breakdown.append({"date": formatted_date, "type": "Expenses", "amount": total_expense, "label": ""})
@@ -453,18 +464,9 @@ def category_history(category):
             elif category == "hor(tithes)":
                 derived_amount = hor * 0.10
                 label = "10% of HOR"
-            elif category == "soc(tithes)":
-                derived_amount = soc * 0.10
-                label = "10% of SOC"
             elif category == "sundayschool(tithes)":
                 derived_amount = ss * 0.10
                 label = "10% of Sunday School"
-            elif category == "for_visitor(tithes)":
-                derived_amount = for_visitor * 0.10
-                label = "10% of For Visitor"
-            elif category == "others(tithes)":
-                derived_amount = others * 0.10
-                label = "10% of Others"
             elif category == "fp(hq)":
                 derived_amount = fp * 0.45
                 label = "45% of FP"
