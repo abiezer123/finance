@@ -377,20 +377,19 @@ const categories = [
     "soc", "sundayschool", "for_visitor", "amd", "others"
 ];
 
-
 async function loadSummaryWithExpenses() {
-
     const date = document.getElementById("entry-date").value;
+
     const [entriesRes, expensesRes] = await Promise.all([
         fetch(`/api/entries?date=${date}`),
         fetch(`/api/expenses?date=${date}`)
     ]);
+
     const entries = await entriesRes.json();
     const expenses = await expensesRes.json();
 
     const summaryBody = document.getElementById("summary-body");
     summaryBody.innerHTML = "";
-    //
 
     const originalTotals = {};
     const expenseTotals = {};
@@ -407,13 +406,15 @@ async function loadSummaryWithExpenses() {
     totalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += totalRow;
 
-    // Expense rows
-    expenses.forEach((e, i) => {
-        if (expenseTotals[e.from] !== undefined) {
-            expenseTotals[e.from] += parseFloat(e.amount) || 0;
-        }
+    // Expense rows — filter only allowed categories
+    let shownExpenseIndex = 0;
+    expenses.forEach((e) => {
+        if (!categories.includes(e.from)) return; // ❗ Skip expenses not in allowed categories
 
-        let row = `<tr><td>${i + 1}</td><td>-</td>`;
+        expenseTotals[e.from] += parseFloat(e.amount) || 0;
+
+        shownExpenseIndex++;
+        let row = `<tr><td>${shownExpenseIndex}</td><td>-</td>`;
         categories.forEach(cat => {
             if (cat === e.from) {
                 row += `<td style="color:red;">-₱${parseFloat(e.amount).toFixed(2)} (${e.label})</td>`;
@@ -421,13 +422,13 @@ async function loadSummaryWithExpenses() {
                 row += `<td></td>`;
             }
         });
+
         const editBtn = `<button onclick="openEditExpenseModal('${e._id}')" style="background:#3498db; color: white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">Edit</button>`;
         const deleteBtn = `<button onclick="deleteExpense('${e._id}')" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Delete</button>`;
         row += `<td style="display:flex; flex-direction:column; gap:12px; justify-content:center; min-width:110px;">${editBtn}${deleteBtn}</td></tr>`;
 
         summaryBody.innerHTML += row;
     });
-
 
     // Total Expenses row
     let expenseTotalRow = `<tr><td>-</td><td><b>Total Expenses</b></td>`;
@@ -448,13 +449,12 @@ async function loadSummaryWithExpenses() {
     finalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += finalRow;
 
-
+    // Summary values
     const totalIncome = Object.values(originalTotals).reduce((sum, val) => sum + val, 0);
     const totalFinal = categories.reduce((acc, cat) => acc + (originalTotals[cat] - expenseTotals[cat]), 0);
 
     document.getElementById("overall-income-total").textContent = `Total Givings: ₱${totalIncome.toLocaleString()}`;
     document.getElementById("overall-final-total").textContent = `Total After Expenses: ₱${totalFinal.toLocaleString()}`;
-
 }
 
 //Editing Expenses 
