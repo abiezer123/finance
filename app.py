@@ -291,6 +291,7 @@ def alltime_summary():
 
 
 # category summary page
+# category summary page
 @app.route("/category-summary")
 @login_required
 def category_summary():
@@ -301,9 +302,9 @@ def category_history(category):
     base_categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others", "amd"]
     derived_categories = [
         "tithes(tithes)", "offering(tithes)", "fp(tithes)", "hor(tithes)",
-        "sundayschool(tithes)", "crv", "fp(hq)", "hor(hq)"
+        "sundayschool(tithes)", "crv", "fp(hq)", "hor(hq)", "sfc(hq)", "ph(hq)"
     ]
-    
+
     all_dates = sorted(set(mongo.db.entries.distinct("date") + mongo.db.expenses.distinct("date")))
     history = []
     total_remaining_cash = 0
@@ -382,41 +383,31 @@ def category_history(category):
                     {"date": formatted_date, "type": "Expenses", "amount": expense_cut, "label": ""}
                 ])
             elif category in ["sfc", "ph"]:
-                category_total = sum(get_float(e.get(category, 0)) for e in entry_docs)
-                expenses_total = sum(get_float(e.get("amount", 0)) for e in expense_docs)
-
-                total_remaining_cash += category_total - expenses_total
-
-                if category_total > 0:
-                    breakdown.append({
-                        "date": formatted_date,
-                        "type": f"{category.upper()}(HQ)",
-                        "amount": category_total,
-                        "label": ""
-                    })
-
-                for e in expense_docs:
-                    breakdown.append({
-                        "date": formatted_date,
-                        "type": "Manual Expenses",
-                        "amount": get_float(e.get("amount", 0)),
-                        "label": e.get("label", ""),
-                        "_id": str(e.get("_id")),
-                        "source": "manual"
-                    })
-
-            else:
-                expense_cut = total_expenses
-                total_deduction = expense_cut
-                remaining = total_giving - expense_cut
-                total_remaining_cash += remaining
+                hq_cut = total_giving
+                total_deduction = hq_cut
+                remaining = 0
+                total_remaining_cash += 0
 
                 breakdown.append({
                     "date": formatted_date,
-                    "type": "Expenses",
-                    "amount": expense_cut,
+                    "type": f"{category.upper()}(HQ)",
+                    "amount": hq_cut,
                     "label": ""
                 })
+            else:
+                for exp in expense_docs:
+                    breakdown.append({
+                        "date": formatted_date,
+                        "type": "Expenses",
+                        "amount": float(exp.get("amount", 0)),
+                        "label": exp.get("label", "Manual"),
+                        "_id": str(exp.get("_id")),
+                        "source": "manual"
+                    })
+
+                total_deduction = total_expenses
+                remaining = total_giving - total_expenses
+                total_remaining_cash += remaining
 
             breakdown.insert(1, {
                 "date": formatted_date,
@@ -456,10 +447,8 @@ def category_history(category):
                 derived_amount = tithes_crv + offering_crv
 
                 crv_expenses = list(mongo.db.expenses.find({"date": date, "from": "crv"}))
-                crv_expense_total = sum(float(e.get("amount", 0)) for e in crv_expenses)
 
                 total_derived += derived_amount
-                total_manual_expense += crv_expense_total
 
                 result.append({
                     "date": formatted_date,
@@ -468,13 +457,17 @@ def category_history(category):
                     "label": f"Tithes(CRV): ₱{tithes_crv:,.2f}, Offering(CRV): ₱{offering_crv:,.2f}"
                 })
 
-                if crv_expense_total > 0:
+                for exp in crv_expenses:
                     result.append({
                         "date": formatted_date,
                         "type": "Manual Expenses",
-                        "amount": crv_expense_total,
-                        "label": "Added manually"
+                        "amount": float(exp.get("amount", 0)),
+                        "label": exp.get("label", "Manual"),
+                        "_id": str(exp.get("_id")),
+                        "source": "manual"
                     })
+
+                    total_manual_expense += float(exp.get("amount", 0))
 
             result.append({
                 "date": "-",
@@ -484,12 +477,8 @@ def category_history(category):
             })
 
         else:
-            total_derived = 0
-            total_manual_expense = 0
-
             for date in all_dates:
                 entry_docs = list(mongo.db.entries.find({"date": date}))
-                expense_docs = list(mongo.db.expenses.find({"date": date, "from": category}))
                 formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
 
                 tithes_total = sum(get_float(e.get("tithes", 0)) for e in entry_docs)
@@ -516,40 +505,13 @@ def category_history(category):
                 elif category == "sundayschool(tithes)":
                     derived_amount = sundayschool_total * 0.10
                     source_label = "10% of Sunday School"
-                elif category == "fp(hq)":
-                    derived_amount = fp_total * 0.45
-                    source_label = "45% of FP"
-                elif category == "hor(hq)":
-                    derived_amount = hor_total * 0.45
-                    source_label = "45% of HOR"
 
-                total_derived += derived_amount
-
-                if derived_amount > 0:
-                    result.append({
-                        "date": formatted_date,
-                        "type": category.upper(),
-                        "amount": derived_amount,
-                        "label": source_label
-                    })
-
-                expense_total = sum(get_float(e.get("amount", 0)) for e in expense_docs)
-                total_manual_expense += expense_total
-
-                for e in expense_docs:
-                    result.append({
-                        "date": formatted_date,
-                        "type": "Manual Expenses",
-                        "amount": get_float(e.get("amount", 0)),
-                        "label": e.get("label", "Manual")
-                    })
-
-            result.append({
-                "date": "-",
-                "type": "Cash on Hand",
-                "amount": total_derived - total_manual_expense,
-                "label": ""
-            })
+                result.append({
+                    "date": formatted_date,
+                    "type": category.upper(),
+                    "amount": derived_amount,
+                    "label": source_label
+                })
 
         return jsonify(result)
 
@@ -637,6 +599,25 @@ def add_manual_expense():
     mongo.db.expenses.insert_one(expense)
 
     return jsonify({"success": True, "message": "Manual expense recorded."}), 201
+
+
+# Delete manual expense for category summary
+@app.route("/category-summary/delete-expense/<expense_id>", methods=["DELETE"])
+def category_summary_delete_expense(expense_id):
+    result = mongo.db.expenses.delete_one({"_id": ObjectId(expense_id)})
+    return jsonify({"success": result.deleted_count > 0})
+
+# Edit manual expense for category summary
+@app.route("/category-summary/edit-expense/<expense_id>", methods=["PUT"])
+def category_summary_edit_expense(expense_id):
+    data = request.get_json()
+    amount = float(data.get("amount", 0))
+    label = data.get("label", "Manual")
+    result = mongo.db.expenses.update_one(
+        {"_id": ObjectId(expense_id)},
+        {"$set": {"amount": amount, "label": label}}
+    )
+    return jsonify({"success": result.modified_count > 0})
 
 
 if __name__ == "__main__":

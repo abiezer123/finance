@@ -234,7 +234,8 @@ async function fetchCategoryData(category) {
 
         const expenses = entry.total_expenses !== undefined ? `₱${parseFloat(entry.total_expenses).toFixed(2)}` : "-";
         const remaining = entry.remaining !== undefined ? `₱${parseFloat(entry.remaining).toFixed(2)}` : "-";
-        const isDeletable = expenseDeletableCategories.includes(currentCategory) && entry.label;
+        const isDeletable = entry.source === "manual";
+
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -245,27 +246,55 @@ async function fetchCategoryData(category) {
             <td>${expenses}</td>
             <td>${remaining}</td>
             <td>
-                ${isDeletable ? `<button class="delete-btn" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;" data-id="${getEntryId(entry)}">Delete</button>` : "-"}
-                
+                ${isDeletable ? `
+                    <button class="edit-btn" style="background-color: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;" data-id="${getEntryId(entry)}" data-label="${entry.label}" data-amount="${entry.amount}">Edit</button>
+                    <button class="delete-btn" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;" data-id="${getEntryId(entry)}">Delete</button>
+                ` : "-"}
             </td>
+
         `;
+        
+        
         if (isDeletable) {
             const deleteBtn = tr.querySelector(".delete-btn");
+            const editBtn = tr.querySelector(".edit-btn");
+
             deleteBtn.addEventListener("click", async () => {
-                const confirmDelete = confirm("Delete this expense?");
+                const confirmDelete = confirm("Delete this manual expense?");
                 if (!confirmDelete) return;
 
-                const res = await fetch(`/delete-expense/${getEntryId(entry)}`, {
+                const res = await fetch(`/category-summary/delete-expense/${getEntryId(entry)}`, {
                     method: "DELETE",
                 });
 
                 if (res.ok) {
                     fetchCategoryData(currentCategory);
                 } else {
-                    alert("Failed to delete expense.");
+                    alert("Failed to delete manual expense.");
                 }
             });
+
+            editBtn.addEventListener("click", async () => {
+                const newAmount = parseFloat(prompt("Enter new amount:", entry.amount));
+                const newLabel = prompt("Enter new label:", entry.label || "Manual");
+
+                if (!isNaN(newAmount)) {
+                    const res = await fetch(`/category-summary/edit-expense/${getEntryId(entry)}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ amount: newAmount, label: newLabel }),
+                    });
+
+                    if (res.ok) {
+                        fetchCategoryData(currentCategory);
+                    } else {
+                        alert("Failed to edit manual expense.");
+                    }
+                }
+            });
+
         }
+
 
 
 
