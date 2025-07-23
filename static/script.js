@@ -7,7 +7,7 @@ let expenseForm;
 
 document.addEventListener("DOMContentLoaded", () => {
 
-   const scrollBtn = document.getElementById("scroll-calculator-btn");
+    const scrollBtn = document.getElementById("scroll-calculator-btn");
     const mainCalcBtn = document.getElementById("open-calculator");
 
     // Prevent errors if buttons are missing

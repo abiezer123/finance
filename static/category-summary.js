@@ -324,6 +324,26 @@ categorySelect.addEventListener("change", () => {
 
 // Initial load
 window.addEventListener("DOMContentLoaded", () => {
+    const scrollBtn = document.getElementById("scroll-calculator-btn");
+    const mainCalcBtn = document.getElementById("open-calculator");
+
+    // Prevent errors if buttons are missing
+    if (!scrollBtn || !mainCalcBtn) return;
+
+    // Show/hide floating button when scrolling
+    window.addEventListener("scroll", function () {
+        if (window.scrollY > 50) {
+            scrollBtn.style.display = "flex";
+        } else {
+            scrollBtn.style.display = "none";
+        }
+    });
+
+    // Trigger calculator on floating button click
+    scrollBtn.addEventListener("click", function () {
+        mainCalcBtn.click();
+    });
+
     currentCategory = categorySelect.value;
     fetchCategoryData(currentCategory);
     populateExpenseDropdown();
