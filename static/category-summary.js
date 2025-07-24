@@ -47,6 +47,8 @@ function populateExpenseDropdown() {
 // Open modal (safe check if button exists)
 if (addExpenseBtn) {
     addExpenseBtn.addEventListener("click", () => {
+        
+        modalCategorySelect.style.display = "block";
         modal.style.display = "block";
         modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
         modalCategorySelect.value = currentCategory;
@@ -83,6 +85,7 @@ function addExpense() {
 }
 
 function editExpense(index, newAmount, newLabel, newCategory) {
+
     if (isNaN(newAmount)) { alert("Please enter a valid amount."); return; }
 
     const expense = database.entries[index];
@@ -330,6 +333,8 @@ async function fetchCategoryData(category) {
             });
 
             editBtn.addEventListener("click", () => {
+                
+                modalCategorySelect.style.display = "none";
                 modal.style.display = "block";
                 document.getElementById("modal-category-name").textContent = currentCategory;
                 document.getElementById("modal-category-select").value = currentCategory;
