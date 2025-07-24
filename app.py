@@ -370,16 +370,29 @@ def category_history(category):
                     {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
                     {"date": formatted_date, "type": "For Pastor - 50%", "amount": pastor_cut, "label": ""}
                 ])
+            elif category == "offering":
+                tithes_cut = total_giving * 0.10
+                crv_cut = total_giving * 0.10
+                remaining = total_giving - (tithes_cut + crv_cut) - total_expense
+
+                breakdown.extend([
+                    {"date": formatted_date, "type": "Offering(Tithes) - 10%", "amount": tithes_cut, "label": ""},
+                    {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
+                    {"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""}
+                    
+
+                ])
             elif category in ["fp", "hor"]:
+                tithes_cut = total_giving * 0.10
                 hq_cut = total_giving * 0.45
                 remaining = total_giving - hq_cut
 
-                breakdown.append({
-                    "date": formatted_date,
-                    "type": f"{category.upper()}(HQ) - 45%",
-                    "amount": hq_cut,
-                    "label": ""
-                })
+                breakdown.extend([
+                    {"date": formatted_date, "type": f"{category.upper()}(Tithes) - 10%", "amount": tithes_cut, "label": ""},
+                    {"date": formatted_date, "type": f"{category.upper()} (HQ) - 45%", "amount": hq_cut, "label": ""},
+                    {"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""}
+                    
+                ])
             elif category in ["sfc", "ph"]:
                 breakdown.append({
                     "date": formatted_date,
