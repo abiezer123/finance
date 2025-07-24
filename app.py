@@ -408,7 +408,7 @@ def category_history(category):
             for e in expense_docs:
                 breakdown.append({
                     "date": formatted_date,
-                    "type": "Manual Expense",
+                    "type": "Expenses",
                     "amount": float(e.get("amount", 0)),
                     "label": e.get("label", ""),
                     "source": e.get("source", ""),
@@ -476,7 +476,7 @@ def category_history(category):
             for e in expense_docs:
                 result.append({
                     "date": formatted_date,
-                    "type": "Manual Expense",
+                    "type": "Expenses",
                     "amount": float(e.get("amount", 0)),
                     "label": e.get("label", ""),
                     "source": e.get("source", ""),
