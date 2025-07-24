@@ -331,7 +331,7 @@ def category_summary():
 def category_history(category):
     base_categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others", "amd"]
     derived_categories = [
-        "tithes(tithes)", "offering(tithes)", "fp(tithes)", "hor(tithes)", "soc(tithes)",
+        "tithes(tithes)", "church tithes", "fp(tithes)", "hor(tithes)", "soc(tithes)",
         "sundayschool(tithes)", "for_visitor(tithes)", "others(tithes)", "crv",
         "fp(hq)", "hor(hq)", "sfc(hq)", "ph(hq)"
     ]
@@ -376,7 +376,7 @@ def category_history(category):
                 remaining = total_giving - (tithes_cut + crv_cut) - total_expense
 
                 breakdown.extend([
-                    {"date": formatted_date, "type": "Offering(Tithes) - 10%", "amount": tithes_cut, "label": ""},
+                    {"date": formatted_date, "type": "church tithes - 10%", "amount": tithes_cut, "label": ""},
                     {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
                     {"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""}
                     
@@ -463,7 +463,7 @@ def category_history(category):
             elif category == "tithes(tithes)":
                 derived_amount = tithes * 0.10
                 label = "10% of Tithes"
-            elif category == "offering(tithes)":
+            elif category == "church tithes":
                 derived_amount = offering * 0.10
                 label = "10% of Offering"
             elif category == "fp(tithes)":
@@ -566,18 +566,45 @@ def delete_manual_expense_summary(expense_id):
 
 @app.route("/category-summary/edit-expense/<expense_id>", methods=["PUT"])
 def edit_manual_expense(expense_id):
+    from bson.objectid import ObjectId
+
+    if not request.is_json:
+        return jsonify({"success": False, "error": "Invalid content type"}), 400
+
     data = request.get_json()
+    print("Incoming ID:", expense_id)
+
+    try:
+        obj_id = ObjectId(expense_id)
+    except:
+        print("Invalid ObjectId")
+        return jsonify({"success": False, "error": "Invalid ID"}), 400
+
+    doc = mongo.db.expenses.find_one({"_id": obj_id})
+    if not doc:
+        print("Document not found")
+        return jsonify({"success": False, "error": "Not found"}), 404
+
     amount = float(data.get("amount", 0))
     label = data.get("label", "Manual")
+    category = data.get("category")
+
+    update_fields = {
+        "amount": amount,
+        "label": label,
+    }
+    if category:
+        print(f"Updating category to {category}")
+        update_fields["category"] = category
 
     result = mongo.db.expenses.update_one(
-        {"_id": ObjectId(expense_id), "source": "manual"},
-        {"$set": {"amount": amount, "label": label}}
+        {"_id": obj_id},
+        {"$set": update_fields}
     )
+
     if result.modified_count == 1:
         return jsonify({"success": True})
-    return jsonify({"success": False}), 404
-
+    return jsonify({"success": False, "error": "No changes made"}), 404
 
 @app.route('/logout')
 def logout():

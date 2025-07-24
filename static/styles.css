@@ -647,4 +647,20 @@ td.actions {
     .calc-buttons {
         grid-template-columns: repeat(4, 1fr);
     }
+    
+    .calc-btn.flash-green {
+        background-color: #2ecc71 !important;
+        color: white !important;
+        transition: background-color 0.2s ease;
+    }
+
 }
+
+#calc-history {
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+
+

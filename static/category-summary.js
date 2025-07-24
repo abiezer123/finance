@@ -13,7 +13,7 @@ const addExpenseBtn = document.getElementById("add-expense-btn");
 const expenseRestrictedCategories = ["tithes", "sfc", "ph", "amd"];
 const allCategories = [
     "tithes", "offering", "fp", "hor", "sundayschool",
-    "for_visitor", "others", "tithes(tithes)", "offering(tithes)",
+    "for_visitor", "others", "tithes(tithes)", "church tithes",
     "fp(tithes)", "hor(tithes)", "sundayschool(tithes)", 
     "fp(hq)", "hor(hq)", "soc","sfc", "ph", "amd", "crv"
 ];
@@ -82,14 +82,38 @@ function addExpense() {
     modalLabel.value = "";
 }
 
-function editExpense(index, newAmount, newLabel) { 
+function editExpense(index, newAmount, newLabel, newCategory) {
     if (isNaN(newAmount)) { alert("Please enter a valid amount."); return; }
 
-    database.entries[index].amount = newAmount;
-    database.entries[index].label = newLabel || database.entries[index].label;
-    saveDatabase();
-    updateTable();
+    const expense = database.entries[index];
+
+    expense.amount = newAmount;
+    expense.label = newLabel || expense.label;
+    if (newCategory) {
+        expense.category = newCategory;
+    }
+
+    fetch(`/category-summary/edit-expense/${expense._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            amount: newAmount,
+            label: newLabel,
+            category: newCategory  // ✅ Ensure this is included
+        }),
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            saveDatabase();   // optional: check if this overwrites data
+            updateTable();
+        } else {
+            alert("Failed to update expense.");
+        }
+    })
+    .catch(error => console.error("Error updating expense:", error));
 }
+
 
 function deleteExpense(index) { database.entries.splice(index, 1); saveDatabase(); updateTable(); }
  function updateTable() { 
@@ -168,8 +192,13 @@ expenseForm.addEventListener("submit", async (e) => {
         const res = await fetch(`/category-summary/edit-expense/${expenseId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount, label }),
+            body: JSON.stringify({ 
+                amount, 
+                label,
+                category: selectedCat 
+            }),
         });
+
         if (res.ok) {
             modal.style.display = "none";
             expenseForm.reset();
@@ -229,7 +258,7 @@ async function fetchCategoryData(category) {
         const isTotalDeduction = type.includes("total deduction");
 
         const derivedInputTypes = [
-            "tithes(tithes)", "offering(tithes)", "fp(tithes)", "hor(tithes)", "sundayschool(tithes)",
+            "tithes(tithes)", "church tithes", "fp(tithes)", "hor(tithes)", "sundayschool(tithes)",
             "crv", "fp(hq)", "hor(hq)", "sfc", "ph"
         ].map(type => type.toLowerCase());
 
