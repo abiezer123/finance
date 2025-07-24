@@ -458,6 +458,9 @@ hr {
     color: red;
 }
 
+.text-dark-red{
+    color: #8B0000;
+}
 .text-green {
     color: green;
 }

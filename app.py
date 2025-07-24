@@ -381,14 +381,13 @@ def category_history(category):
                     "label": ""
                 })
             elif category in ["sfc", "ph"]:
-                hq_cut = total_giving
-                remaining = 0
                 breakdown.append({
                     "date": formatted_date,
-                    "type": f"{category.upper()}(HQ)",
-                    "amount": hq_cut,
+                    "type": category.upper(),
+                    "amount": total_giving,
                     "label": ""
                 })
+
             elif category == "sundayschool":
                 tithes_cut = total_giving * 0.10
                 remaining = total_giving - tithes_cut - total_expense
@@ -402,7 +401,7 @@ def category_history(category):
             
             else:
                 remaining -= total_expense
-                breakdown.append({"date": formatted_date, "type": "Expenses", "amount": total_expense, "label": ""})
+                breakdown.append({"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""})
 
             breakdown.insert(1, {"date": formatted_date, "type": "Total Deduction", "amount": total_giving - remaining, "label": "", "remaining": remaining})
 
@@ -469,12 +468,6 @@ def category_history(category):
             elif category == "hor(hq)":
                 derived_amount = hor * 0.45
                 label = "45% of HOR"
-            elif category == "sfc(hq)":
-                derived_amount = get_sum("sfc")
-                label = "100% of SFC"
-            elif category == "ph(hq)":
-                derived_amount = get_sum("ph")
-                label = "100% of PH"
 
             if derived_amount > 0:
                 result.append({"date": formatted_date, "type": category.upper(), "amount": derived_amount, "label": label})

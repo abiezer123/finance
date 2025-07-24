@@ -238,9 +238,13 @@ async function fetchCategoryData(category) {
         let amountClass = 'text-red';
         if (isTotalGiving || isDerivedInput) {
             amountClass = 'text-green';
-        } else if (isTotalExpenses || isTotalDeduction) {
+        } else if (isTotalDeduction) {
             amountClass = 'text-orange';
+        } else if (isTotalExpenses){
+            amountClass = 'text-dark-red';
         }
+
+
 
         let amountValue = parseFloat(entry.amount).toLocaleString('en-US', {
             minimumFractionDigits: 2,
