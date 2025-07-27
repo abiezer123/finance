@@ -330,8 +330,22 @@ function updateTable(data) {
         </tr>
     `;
 
-    const totalIncome = Object.values(totals).reduce((sum, val) => sum + val, 0);
-    document.getElementById("overall-income-total").textContent = `Overall: ₱${totalIncome.toLocaleString()}`;
+    // ✅ Get overall total from entries-table (Total column)
+        const entryRows = document.querySelectorAll("#entries-table tbody tr");
+        let entryTotal = 0;
+
+        entryRows.forEach(row => {
+            const totalCell = row.querySelector("td:nth-child(14)");
+            if (totalCell) {
+                const value = parseFloat(totalCell.textContent.replace(/[₱,]/g, ""));
+                if (!isNaN(value)) {
+                    entryTotal += value;
+                }
+            }
+        });
+
+        document.getElementById("overall-income-total").textContent = `Total Givings: ₱${entryTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
 }
 
 //editing entry
@@ -471,12 +485,26 @@ async function loadSummaryWithExpenses() {
     finalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += finalRow;
 
-    // Summary values
+     // ✅ Correct Summary Totals
     const totalIncome = Object.values(originalTotals).reduce((sum, val) => sum + val, 0);
-    const totalFinal = categories.reduce((acc, cat) => acc + (originalTotals[cat] - expenseTotals[cat]), 0);
+    const totalExpenses = Object.values(expenseTotals).reduce((sum, val) => sum + val, 0);
+    const totalFinal = totalIncome - totalExpenses;
 
-    document.getElementById("overall-income-total").textContent = `Total Givings: ₱${totalIncome.toLocaleString()}`;
-    document.getElementById("overall-final-total").textContent = `Total After Expenses: ₱${totalFinal.toLocaleString()}`;
+    // ✅ Get overall total from entries-table (Total column)
+    const entryRows = document.querySelectorAll("#entries-table tbody tr");
+    let entryTotal = 0;
+
+    entryRows.forEach(row => {
+        const totalCell = row.querySelector("td:nth-child(14)");
+        if (totalCell) {
+            const value = parseFloat(totalCell.textContent.replace(/[₱,]/g, ""));
+            if (!isNaN(value)) {
+                entryTotal += value;
+            }
+        }
+    });
+
+   
 }
 
 //Editing Expenses 

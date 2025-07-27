@@ -411,6 +411,7 @@ window.addEventListener("DOMContentLoaded", () => {
     let calcOperator = "";
     let calcOperand = null;
     let calcReset = false;
+    
 
     function updateCalcDisplay() {
         calcDisplay.value = calcValue;
