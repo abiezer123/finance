@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     OpenCloseExpensesModal();
     ExpensesSubmit();
     entriesColumnTag();
+    expensesColumnTag();
 });
 
 
@@ -282,9 +283,9 @@ function entriesColumnTag() {
             const colIndex = Array.from(row.children).indexOf(td);
 
             const headerText = headers[colIndex]?.innerText || "Unknown";
-            const name = row.children[1]?.innerText || "N/A"; // Assuming name is in 2nd column (index 1)
+            const name = row.children[1]?.innerText || "N/A"; // 
 
-            infoBox.innerText = `Column: ${headerText}\nName: ${name}`;
+            infoBox.innerText = `${headerText}\nName: ${name}`;
             infoBox.style.left = e.pageX + 10 + "px";
             infoBox.style.top = e.pageY + 10 + "px";
             infoBox.style.display = "block";
@@ -304,6 +305,42 @@ function entriesColumnTag() {
         }
     });
 
+}
+
+// tag for expenses table
+function expensesColumnTag() {
+    //summary-table
+    const table = document.getElementById("summary-table");
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    const infoBox = document.getElementById("info-box");
+
+    table.addEventListener("click", function (e) {
+        if (e.target.tagName.toLowerCase() === "td") {
+            const td = e.target;
+            const row = td.parentElement;
+            const colIndex = Array.from(row.children).indexOf(td);
+
+            const headerText = headers[colIndex]?.innerText || "Unknown";
+
+            infoBox.innerText = `${headerText}`;
+            infoBox.style.left = e.pageX + 10 + "px";
+            infoBox.style.top = e.pageY + 10 + "px";
+            infoBox.style.display = "block";
+
+            // Hide after 2.5 seconds
+            clearTimeout(infoBox.timeout);
+            infoBox.timeout = setTimeout(() => {
+                infoBox.style.display = "none";
+            }, 2500);
+        }
+    });
+
+    // Optional: hide on scroll or click elsewhere
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest("table")) {
+            infoBox.style.display = "none";
+        }
+    });
 }
 
 
