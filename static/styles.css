@@ -31,7 +31,8 @@ html {
     margin: 1rem;
     display: flex;
     align-items: center;
-    justify-content: space-between; /* keep this for brand left, links right */
+    justify-content: space-between;
+    /* keep this for brand left, links right */
     flex-wrap: wrap;
     position: sticky;
     top: 0;
@@ -85,9 +86,12 @@ html {
     align-items: center;
     gap: 1.5rem;
     list-style: none;
-    margin-left: auto; /* Pushes links (and calculator) to the right */
-    margin-right: 0;     /* Remove right margin if present */
-    justify-content: flex-end; /* Align all items to the right */
+    margin-left: auto;
+    /* Pushes links (and calculator) to the right */
+    margin-right: 0;
+    /* Remove right margin if present */
+    justify-content: flex-end;
+    /* Align all items to the right */
     flex: 1;
 }
 
@@ -112,7 +116,7 @@ html {
 /* Modern Navbar Styles */
 .navbar-modern {
     background: #222;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
     padding: 0;
     position: sticky;
     top: 0;
@@ -194,6 +198,7 @@ html {
     justify-content: center;
     vertical-align: middle;
 }
+
 .navbar-calc-btn:hover {
     background: #f1c40f;
     color: #222;
@@ -202,6 +207,7 @@ html {
 #open-calculator {
     margin-right: 20px;
 }
+
 /* Responsive */
 @media (max-width: 900px) {
     .navbar {
@@ -210,11 +216,13 @@ html {
         padding: 1rem;
         position: relative;
     }
+
     .navbar-calc-btn {
         margin: 0 0.5rem 0 0.5rem;
         position: relative;
         z-index: 1002;
     }
+
     .navbar-links {
         flex-direction: column;
         width: 100%;
@@ -223,36 +231,42 @@ html {
         display: none;
         background: rgba(31, 42, 64, 0.97);
         border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         position: absolute;
         left: 0;
         top: 60px;
         z-index: 1001;
     }
+
     .navbar-links li {
         width: 100%;
         display: flex;
         justify-content: flex-start;
     }
-    .navbar-links li a, .navbar-links li button {
+
+    .navbar-links li a,
+    .navbar-links li button {
         width: 100%;
         text-align: left;
         margin: 0;
         border-radius: 0;
     }
-    .nav-toggle:checked + .nav-toggle-label + .navbar-links {
+
+    .nav-toggle:checked+.nav-toggle-label+.navbar-links {
         display: flex;
     }
+
     .nav-toggle-label {
         display: flex;
     }
+
     /* Calculator button spacing in mobile */
     #open-calculator {
         margin: 10px 20px 10px 10px;
 
     }
 
-    
+
 }
 
 
@@ -458,9 +472,10 @@ hr {
     color: red;
 }
 
-.text-dark-red{
+.text-dark-red {
     color: #8B0000;
 }
+
 .text-green {
     color: green;
 }
@@ -474,6 +489,7 @@ hr {
     font-weight: bold;
     color: #2c3e50;
 }
+
 @media (min-width: 769px) {
     .modal-content form {
         display: flex;
@@ -481,6 +497,7 @@ hr {
         align-items: center;
         gap: 12px;
     }
+
     .expense-input {
         width: 100%;
         max-width: 100%;
@@ -489,6 +506,7 @@ hr {
         box-sizing: border-box;
         display: block;
     }
+
     .modal-content label {
         align-self: flex-start;
         margin-left: 8px;
@@ -500,7 +518,8 @@ hr {
         display: block;
         margin-left: auto;
         margin-right: auto;
-        max-width: 350px; /* adjust as needed */
+        max-width: 350px;
+        /* adjust as needed */
     }
 }
 
@@ -530,7 +549,10 @@ td.actions {
 /* Transparent Calculator Modal */
 #calculator-modal.modal-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(30, 30, 30, 0.35);
     display: flex;
     align-items: center;
@@ -539,8 +561,10 @@ td.actions {
     /* Remove blur and transparency */
     backdrop-filter: none;
 }
+
 .calculator-modal-content {
-    background: #222; /* Solid color */
+    background: #222;
+    /* Solid color */
     border-radius: 18px;
     padding: 28px 16px 18px 16px;
     min-width: 320px;
@@ -551,9 +575,11 @@ td.actions {
     align-items: center;
     max-width: 95vw;
 }
+
 #close-calculator-modal {
     position: absolute;
-    top: -32px; /* Move above the modal */
+    top: -32px;
+    /* Move above the modal */
     right: 0;
     font-size: 2rem;
     color: #aaa;
@@ -569,10 +595,12 @@ td.actions {
     justify-content: center;
     border: 2px solid #fff1;
 }
+
 #close-calculator-modal:hover {
     color: #e74c3c;
     background: #fff2;
 }
+
 .calculator-modern {
     display: flex;
     flex-direction: column;
@@ -580,11 +608,12 @@ td.actions {
     width: 260px;
     max-width: 90vw;
 }
+
 .calc-display {
     width: 100%;
     height: 48px;
     font-size: 2rem;
-    background: rgba(24,24,24,0.9);
+    background: rgba(24, 24, 24, 0.9);
     color: #27ae60;
     border: none;
     border-radius: 8px;
@@ -594,14 +623,16 @@ td.actions {
     box-shadow: 0 2px 8px #0002 inset;
     outline: none;
 }
+
 .calc-buttons {
     display: grid;
     grid-template-columns: repeat(4, 56px);
     grid-gap: 10px;
     width: 100%;
 }
+
 .calc-btn {
-    background: rgba(51,51,51,0.95);
+    background: rgba(51, 51, 51, 0.95);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -611,19 +642,23 @@ td.actions {
     transition: background 0.15s, color 0.15s;
     box-shadow: 0 1px 2px #0001;
 }
+
 .calc-btn:hover {
     background: #27ae60;
     color: #fff;
 }
+
 .equal-btn {
     grid-row: span 2;
     background: #27ae60;
     color: #fff;
     font-weight: bold;
 }
+
 .zero-btn {
     grid-column: span 2;
 }
+
 .calc-history {
     width: 100%;
     min-height: 22px;
@@ -635,19 +670,22 @@ td.actions {
     letter-spacing: 1px;
     overflow-x: auto;
 }
+
 @media (max-width: 600px) {
     .calculator-modal-content {
         min-width: 98vw;
         padding: 12px 2vw 12px 2vw;
     }
+
     .calculator-modern {
         width: 98vw;
         max-width: 98vw;
     }
+
     .calc-buttons {
         grid-template-columns: repeat(4, 1fr);
     }
-    
+
     .calc-btn.flash-green {
         background-color: #2ecc71 !important;
         color: white !important;
@@ -662,5 +700,7 @@ td.actions {
     font-size: 16px;
 }
 
-
-
+tr.highlighted {
+    background-color: #f9e79f !important;
+    /* Light yellow highlight */
+}

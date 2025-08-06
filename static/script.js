@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll(".navbar-links li a");
 
-    
+
     navLinks.forEach(link => {
         if (link.getAttribute("href") === currentPath) {
             link.classList.add("active");
@@ -71,12 +71,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (closeCalcBtn && calcModal) {
         closeCalcBtn.onclick = () => { calcModal.style.display = "none"; };
     }
-    window.addEventListener("click", function(e) {
+    window.addEventListener("click", function (e) {
         if (e.target === calcModal) calcModal.style.display = "none";
     });
 
     document.querySelectorAll(".calc-btn").forEach(btn => {
-        btn.onclick = function() {
+        btn.onclick = function () {
             const action = btn.getAttribute("data-action");
             if (!isNaN(action)) { // Number
                 if (calcValue === "0" || calcReset) {
@@ -234,7 +234,47 @@ document.addEventListener("DOMContentLoaded", () => {
         editingExpenseId = null;
         document.querySelector("#expenses-modal h3").textContent = "Add Expense";
     });
+
+    entriesColumnTag();
 });
+
+
+function entriesColumnTag() {
+
+    const table = document.getElementById("entries-table");
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    const infoBox = document.getElementById("info-box");
+
+    table.addEventListener("click", function (e) {
+        if (e.target.tagName.toLowerCase() === "td") {
+            const td = e.target;
+            const row = td.parentElement;
+            const colIndex = Array.from(row.children).indexOf(td);
+
+            const headerText = headers[colIndex]?.innerText || "Unknown";
+            const name = row.children[1]?.innerText || "N/A"; // Assuming name is in 2nd column (index 1)
+
+            infoBox.innerText = `Column: ${headerText}\nName: ${name}`;
+            infoBox.style.left = e.pageX + 10 + "px";
+            infoBox.style.top = e.pageY + 10 + "px";
+            infoBox.style.display = "block";
+
+            // Hide after 2.5 seconds
+            clearTimeout(infoBox.timeout);
+            infoBox.timeout = setTimeout(() => {
+                infoBox.style.display = "none";
+            }, 2500);
+        }
+    });
+
+    // Optional: hide on scroll or click elsewhere
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest("table")) {
+            infoBox.style.display = "none";
+        }
+    });
+
+}
 
 // Fetch and update table
 async function fetchAndUpdateTable(date) {
@@ -248,8 +288,21 @@ async function fetchAndUpdateTable(date) {
     }
 }
 
+function enableRowHighlighting() {
+    const table = document.getElementById("entries-table");
+    if (table) {
+        table.querySelectorAll("tbody tr").forEach(row => {
+            row.addEventListener("click", () => {
+                table.querySelectorAll("tbody tr").forEach(r => r.classList.remove("highlighted"));
+                row.classList.add("highlighted");
+            })
+        })
+    }
+}
+
 // for Entries Table
 function updateTable(data) {
+
     if (!tableBody || !tfoot) return;
 
     tableBody.innerHTML = "";
@@ -274,7 +327,7 @@ function updateTable(data) {
         totals.amd += row.amd || 0;
 
         const tr = document.createElement("tr");
-        
+
         const total =
             parseFloat(row.tithes || 0) +
             parseFloat(row.offering || 0) +
@@ -331,21 +384,21 @@ function updateTable(data) {
     `;
 
     // ✅ Get overall total from entries-table (Total column)
-        const entryRows = document.querySelectorAll("#entries-table tbody tr");
-        let entryTotal = 0;
+    const entryRows = document.querySelectorAll("#entries-table tbody tr");
+    let entryTotal = 0;
 
-        entryRows.forEach(row => {
-            const totalCell = row.querySelector("td:nth-child(14)");
-            if (totalCell) {
-                const value = parseFloat(totalCell.textContent.replace(/[₱,]/g, ""));
-                if (!isNaN(value)) {
-                    entryTotal += value;
-                }
+    entryRows.forEach(row => {
+        const totalCell = row.querySelector("td:nth-child(14)");
+        if (totalCell) {
+            const value = parseFloat(totalCell.textContent.replace(/[₱,]/g, ""));
+            if (!isNaN(value)) {
+                entryTotal += value;
             }
-        });
+        }
+    });
 
-        document.getElementById("overall-income-total").textContent = `Total Givings: ₱${entryTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-
+    document.getElementById("overall-income-total").textContent = `Total Givings: ₱${entryTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    enableRowHighlighting();
 }
 
 //editing entry
@@ -375,7 +428,7 @@ function editEntry(id) {
             // Change form action and button text
             document.getElementById("offering-form").action = `/edit/${id}`;
             document.querySelector("#offering-form button[type='submit']").textContent = "Update Entry";
-            
+
             // Scroll to the form
             document.getElementById("offering-form").scrollIntoView({ behavior: "smooth", block: "center" });
         });
@@ -485,7 +538,7 @@ async function loadSummaryWithExpenses() {
     finalRow += `<td>-</td></tr>`;
     summaryBody.innerHTML += finalRow;
 
-     // ✅ Correct Summary Totals
+    // ✅ Correct Summary Totals
     const totalIncome = Object.values(originalTotals).reduce((sum, val) => sum + val, 0);
     const totalExpenses = Object.values(expenseTotals).reduce((sum, val) => sum + val, 0);
     const totalFinal = totalIncome - totalExpenses;
@@ -504,7 +557,7 @@ async function loadSummaryWithExpenses() {
         }
     });
 
-   
+
 }
 
 //Editing Expenses 
@@ -536,7 +589,7 @@ function openEditExpenseModal(id) {
 }
 
 // Handle form submit
-document.getElementById("expense-form").onsubmit = function(e) {
+document.getElementById("expense-form").onsubmit = function (e) {
     e.preventDefault();
     const form = e.target;
     const data = {
@@ -569,7 +622,7 @@ document.getElementById("expense-form").onsubmit = function(e) {
 };
 
 // Close modal
-document.getElementById("close-expenses-modal").onclick = function() {
+document.getElementById("close-expenses-modal").onclick = function () {
     document.getElementById("expenses-modal").style.display = "none";
 };
 // Delete expense
@@ -704,7 +757,7 @@ function updateCashOnHand() {
 
             const formattedCash = netCash.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
-                maximumFractionDigits: 2    
+                maximumFractionDigits: 2
             });
 
             document.getElementById("offering-cash").innerText = `Cash on Hand (Offering): ₱${formattedCash}`;
