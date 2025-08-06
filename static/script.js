@@ -4,36 +4,32 @@ let tableBody;
 let tfoot;
 let modal;
 let expenseForm;
+const urlParams = new URLSearchParams(window.location.search);
+const selectedDate = urlParams.get("date") || new Date().toISOString().split("T")[0];
+
 
 document.addEventListener("DOMContentLoaded", () => {
+    initializeDOMReference();
+    calculatorIconWhenScrolled();
+    calculator();
+    searchDate(selectedDate);
+    fetchAndUpdateTable(selectedDate);
+    loadSummaryWithExpenses();
+    updateCashOnHand();
+    OpenCloseExpensesModal();
+    ExpensesSubmit();
+    entriesColumnTag();
+});
 
-    const scrollBtn = document.getElementById("scroll-calculator-btn");
-    const mainCalcBtn = document.getElementById("open-calculator");
 
-    // Prevent errors if buttons are missing
-    if (!scrollBtn || !mainCalcBtn) return;
-
-    // Show/hide floating button when scrolling
-    window.addEventListener("scroll", function () {
-        if (window.scrollY > 50) {
-            scrollBtn.style.display = "flex";
-        } else {
-            scrollBtn.style.display = "none";
-        }
-    });
-
-    // Trigger calculator on floating button click
-    scrollBtn.addEventListener("click", function () {
-        mainCalcBtn.click();
-    });
-
-    const dateInput = document.getElementById("entry-date");
-    const selectedDateDisplay = document.getElementById("selected-date");
-    const formDateInput = document.getElementById("form-date");
+function initializeDOMReference() {
     modal = document.getElementById("expenses-modal");
     expenseForm = document.getElementById("expense-form");
     tableBody = document.querySelector("#entries-table tbody");
     tfoot = document.querySelector("#entries-table tfoot");
+}
+
+function navbar() {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll(".navbar-links li a");
 
@@ -46,6 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+}
+function calculator() {
     const calcModal = document.getElementById("calculator-modal");
     const openCalcBtn = document.getElementById("open-calculator");
     const closeCalcBtn = document.getElementById("close-calculator-modal");
@@ -137,11 +135,37 @@ document.addEventListener("DOMContentLoaded", () => {
             updateCalcDisplay();
         };
     });
-    updateCalcDisplay();
+}
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const selectedDate = urlParams.get("date") || new Date().toISOString().split("T")[0];
 
+//calculator Icon will pop up in the right top When Scrolled
+function calculatorIconWhenScrolled() {
+    const scrollBtn = document.getElementById("scroll-calculator-btn");
+    const mainCalcBtn = document.getElementById("open-calculator");
+    // Prevent errors if buttons are missing
+    if (!scrollBtn || !mainCalcBtn) return;
+
+    // Show/hide floating button when scrolling
+    window.addEventListener("scroll", function () {
+        if (window.scrollY > 50) {
+            scrollBtn.style.display = "flex";
+        } else {
+            scrollBtn.style.display = "none";
+        }
+    });
+
+    // Trigger calculator on floating button click
+    scrollBtn.addEventListener("click", function () {
+        mainCalcBtn.click();
+    });
+
+}
+
+//search using date
+function searchDate(selectedDate) {
+    const selectedDateDisplay = document.getElementById("selected-date");
+    const dateInput = document.getElementById("entry-date");
+    const formDateInput = document.getElementById("form-date");
     dateInput.value = selectedDate;
     selectedDateDisplay.textContent = formatDatePretty(selectedDate);
     if (formDateInput) formDateInput.value = selectedDate;
@@ -155,48 +179,10 @@ document.addEventListener("DOMContentLoaded", () => {
         loadSummaryWithExpenses();
     });
 
-    fetchAndUpdateTable(selectedDate);
-    loadSummaryWithExpenses();
-    updateCashOnHand();
-
-    // JPG Download
-    document.getElementById("download-jpg").addEventListener("click", async () => {
-        const tableWrapper = document.querySelector(".table-wrapper");
-        if (!tableWrapper) return;
-        tableWrapper.scrollLeft = 0;
-        tableWrapper.style.overflow = "visible";
-
-        const canvas = await html2canvas(tableWrapper, {
-            scrollX: 0,
-            scrollY: -window.scrollY,
-            windowWidth: document.body.scrollWidth,
-            useCORS: true
-        });
-
-        const link = document.createElement("a");
-        const date = dateInput.value;
-        link.download = `Report_${date || 'today'}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg");
-        link.click();
-    });
-    document.getElementById("close-summary-modal").addEventListener("click", () => {
-        document.getElementById("summary-modal").style.display = "none";
-    });
+}
 
 
-    // Modal open/close
-    document.getElementById("expenses-button").addEventListener("click", () => {
-        modal.style.display = "block";
-    });
-
-    document.getElementById("close-expenses-modal").addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    window.onclick = e => {
-        if (e.target === modal) modal.style.display = "none";
-    };
-
+function ExpensesSubmit() {
     // Handle expense form submit
     expenseForm.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -234,11 +220,55 @@ document.addEventListener("DOMContentLoaded", () => {
         editingExpenseId = null;
         document.querySelector("#expenses-modal h3").textContent = "Add Expense";
     });
-
-    entriesColumnTag();
-});
+}
 
 
+function downloadJPG() {
+    // JPG Download
+    document.getElementById("download-jpg").addEventListener("click", async () => {
+        const tableWrapper = document.querySelector(".table-wrapper");
+        if (!tableWrapper) return;
+        tableWrapper.scrollLeft = 0;
+        tableWrapper.style.overflow = "visible";
+
+        const canvas = await html2canvas(tableWrapper, {
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: document.body.scrollWidth,
+            useCORS: true
+        });
+
+        const link = document.createElement("a");
+        const date = dateInput.value;
+        link.download = `Report_${date || 'today'}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg");
+        link.click();
+    });
+    document.getElementById("close-summary-modal").addEventListener("click", () => {
+        document.getElementById("summary-modal").style.display = "none";
+    });
+}
+
+
+//opening and closing the modal for expenses
+function OpenCloseExpensesModal() {
+    // Modal open/close
+    document.getElementById("expenses-button").addEventListener("click", () => {
+        modal.style.display = "block";
+    });
+
+    document.getElementById("close-expenses-modal").addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    window.onclick = e => {
+        if (e.target === modal) modal.style.display = "none";
+    };
+
+}
+
+
+//name and column tag inside entries table
 function entriesColumnTag() {
 
     const table = document.getElementById("entries-table");
@@ -276,6 +306,7 @@ function entriesColumnTag() {
 
 }
 
+
 // Fetch and update table
 async function fetchAndUpdateTable(date) {
     try {
@@ -299,6 +330,7 @@ function enableRowHighlighting() {
         })
     }
 }
+
 
 // for Entries Table
 function updateTable(data) {
@@ -383,7 +415,7 @@ function updateTable(data) {
         </tr>
     `;
 
-    // ✅ Get overall total from entries-table (Total column)
+    // Get overall total from entries-table (Total column)
     const entryRows = document.querySelectorAll("#entries-table tbody tr");
     let entryTotal = 0;
 
@@ -403,6 +435,7 @@ function updateTable(data) {
 
 //editing entry
 let editingEntryId = null;
+
 
 function editEntry(id) {
     fetch(`/api/entries?date=${document.getElementById("entry-date").value}`)
@@ -453,6 +486,7 @@ function confirmDelete(index) {
         .catch(err => console.error("Delete error:", err));
 }
 
+
 function formatDatePretty(dateString) {
     const date = new Date(dateString);
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -465,6 +499,7 @@ const categories = [
     "offering", "fp", "hor",
     "soc", "sundayschool", "for_visitor", "amd", "others"
 ];
+
 
 async function loadSummaryWithExpenses() {
     const date = document.getElementById("entry-date").value;
@@ -563,6 +598,7 @@ async function loadSummaryWithExpenses() {
 //Editing Expenses 
 let editingExpenseId = null;
 
+
 // Open modal for adding
 function openAddExpenseModal() {
     editingExpenseId = null;
@@ -570,6 +606,7 @@ function openAddExpenseModal() {
     document.querySelector("#expense-form").reset();
     document.getElementById("expenses-modal").style.display = "block";
 }
+
 
 // Open modal for editing
 function openEditExpenseModal(id) {
@@ -587,6 +624,7 @@ function openEditExpenseModal(id) {
             document.getElementById("expenses-modal").style.display = "block";
         });
 }
+
 
 // Handle form submit
 document.getElementById("expense-form").onsubmit = function (e) {
@@ -621,10 +659,13 @@ document.getElementById("expense-form").onsubmit = function (e) {
     }
 };
 
+
 // Close modal
 document.getElementById("close-expenses-modal").onclick = function () {
     document.getElementById("expenses-modal").style.display = "none";
 };
+
+
 // Delete expense
 function deleteExpense(id) {
     const confirmed = confirm("Are you sure you want to delete this expense?");
@@ -728,6 +769,7 @@ async function loadAllTimeCashSummary() {
         tbody.innerHTML = `<tr><td colspan="4">Error loading summary.</td></tr>`;
     }
 }
+
 
 function updateCashOnHand() {
     fetch("/api/alltime-summary")
