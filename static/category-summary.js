@@ -14,8 +14,8 @@ const expenseRestrictedCategories = ["tithes", "sfc", "ph", "amd"];
 const allCategories = [
     "tithes", "offering", "fp", "hor", "sundayschool",
     "for_visitor", "others", "tithes(tithes)", "church tithes",
-    "fp(tithes)", "hor(tithes)", "sundayschool(tithes)", 
-    "fp(hq)", "hor(hq)", "soc","sfc", "ph", "amd", "crv"
+    "fp(tithes)", "hor(tithes)", "sundayschool(tithes)",
+    "fp(hq)", "hor(hq)", "soc", "sfc", "ph", "amd", "crv"
 ];
 const expenseDeletableCategories = [
     "offering", "fp", "hor", "soc", "sundayschool",
@@ -35,11 +35,11 @@ function getEntryId(entry) {
 function populateExpenseDropdown() {
     modalCategorySelect.innerHTML = "";
     allCategories.forEach(category => {
-       const option = document.createElement("option");
-            option.value = category;
-            option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-            modalCategorySelect.appendChild(option);
-        
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+        modalCategorySelect.appendChild(option);
+
     });
 }
 
@@ -47,7 +47,7 @@ function populateExpenseDropdown() {
 // Open modal (safe check if button exists)
 if (addExpenseBtn) {
     addExpenseBtn.addEventListener("click", () => {
-        
+
         modalCategorySelect.style.display = "block";
         modal.style.display = "block";
         modalCategoryName.textContent = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
@@ -61,9 +61,9 @@ closeModalBtn.addEventListener("click", () => {
     modal.style.display = "none";
 });
 
-function addExpense() { 
-    const category = modalCategorySelect.value; 
-    const amount = parseFloat(modalAmount.value); 
+function addExpense() {
+    const category = modalCategorySelect.value;
+    const amount = parseFloat(modalAmount.value);
     const label = modalLabel.value || "No label"; const date = modalDate.value || new Date().toISOString().split('T')[0];
     if (isNaN(amount)) {
         alert("Please enter a valid amount.");
@@ -105,68 +105,68 @@ function editExpense(index, newAmount, newLabel, newCategory) {
             category: newCategory  // ✅ Ensure this is included
         }),
     })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            saveDatabase();   // optional: check if this overwrites data
-            updateTable();
-        } else {
-            alert("Failed to update expense.");
-        }
-    })
-    .catch(error => console.error("Error updating expense:", error));
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                saveDatabase();   // optional: check if this overwrites data
+                updateTable();
+            } else {
+                alert("Failed to update expense.");
+            }
+        })
+        .catch(error => console.error("Error updating expense:", error));
 }
 
 
 function deleteExpense(index) { database.entries.splice(index, 1); saveDatabase(); updateTable(); }
- function updateTable() { 
+function updateTable() {
     const table = document.getElementById('summary-table'); table.innerHTML = ''; // Clear the existing table
     database.entries.forEach((entry, index) => {
-    const row = document.createElement('tr');
-    const categoryCell = document.createElement('td');
-    const dateCell = document.createElement('td');
-    const amountCell = document.createElement('td');
-    const labelCell = document.createElement('td');
-    const actionCell = document.createElement('td');
+        const row = document.createElement('tr');
+        const categoryCell = document.createElement('td');
+        const dateCell = document.createElement('td');
+        const amountCell = document.createElement('td');
+        const labelCell = document.createElement('td');
+        const actionCell = document.createElement('td');
 
-    categoryCell.textContent = entry.category;
-    dateCell.textContent = entry.date;
-    amountCell.textContent = entry.amount;
-    labelCell.textContent = entry.label;
+        categoryCell.textContent = entry.category;
+        dateCell.textContent = entry.date;
+        amountCell.textContent = entry.amount;
+        labelCell.textContent = entry.label;
 
-    // Edit button
-    const editButton = document.createElement('button');
-    editButton.textContent = 'Edit';
-    editButton.onclick = () => {
-        const newAmount = parseFloat(prompt("Enter new amount:", entry.amount));
-        const newLabel = prompt("Enter new label:", entry.label);
-        if (newAmount !== null) {
-            editExpense(index, newAmount, newLabel);
-        }
-    };
+        // Edit button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.onclick = () => {
+            const newAmount = parseFloat(prompt("Enter new amount:", entry.amount));
+            const newLabel = prompt("Enter new label:", entry.label);
+            if (newAmount !== null) {
+                editExpense(index, newAmount, newLabel);
+            }
+        };
 
-    // Delete button
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Delete';
-    deleteButton.onclick = () => {
-        if (confirm("Are you sure you want to delete this entry?")) {
-            deleteExpense(index);
-        }
-    };
+        // Delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = () => {
+            if (confirm("Are you sure you want to delete this entry?")) {
+                deleteExpense(index);
+            }
+        };
 
-    actionCell.appendChild(editButton);
-    actionCell.appendChild(deleteButton);
-    row.appendChild(categoryCell);
-    row.appendChild(dateCell);
-    row.appendChild(amountCell);
-    row.appendChild(labelCell);
-    row.appendChild(actionCell);
-    table.appendChild(row);
-});
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
+        row.appendChild(categoryCell);
+        row.appendChild(dateCell);
+        row.appendChild(amountCell);
+        row.appendChild(labelCell);
+        row.appendChild(actionCell);
+        table.appendChild(row);
+    });
 
-updateCashOnHand();
+    updateCashOnHand();
 
- }
+}
 
 
 window.addEventListener("click", (event) => {
@@ -195,10 +195,10 @@ expenseForm.addEventListener("submit", async (e) => {
         const res = await fetch(`/category-summary/edit-expense/${expenseId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                amount, 
+            body: JSON.stringify({
+                amount,
                 label,
-                category: selectedCat 
+                category: selectedCat
             }),
         });
 
@@ -272,7 +272,7 @@ async function fetchCategoryData(category) {
             amountClass = 'text-green';
         } else if (isTotalDeduction) {
             amountClass = 'text-orange';
-        } else if (isTotalExpenses){
+        } else if (isTotalExpenses) {
             amountClass = 'text-dark-red';
         }
 
@@ -311,8 +311,8 @@ async function fetchCategoryData(category) {
             </td>
 
         `;
-        
-        
+
+
         if (isDeletable) {
             const deleteBtn = tr.querySelector(".delete-btn");
             const editBtn = tr.querySelector(".edit-btn");
@@ -333,7 +333,7 @@ async function fetchCategoryData(category) {
             });
 
             editBtn.addEventListener("click", () => {
-                
+
                 modalCategorySelect.style.display = "none";
                 modal.style.display = "block";
                 document.getElementById("modal-category-name").textContent = currentCategory;
@@ -385,7 +385,7 @@ window.addEventListener("DOMContentLoaded", () => {
     currentCategory = categorySelect.value;
     fetchCategoryData(currentCategory);
     populateExpenseDropdown();
-    
+
 
     const navToggle = document.getElementById("nav-toggle");
     const navLinks = document.querySelector(".navbar-links");
@@ -411,7 +411,7 @@ window.addEventListener("DOMContentLoaded", () => {
     let calcOperator = "";
     let calcOperand = null;
     let calcReset = false;
-    
+
 
     function updateCalcDisplay() {
         calcDisplay.value = calcValue;
@@ -428,14 +428,14 @@ window.addEventListener("DOMContentLoaded", () => {
     if (closeCalcBtn && calcModal) {
         closeCalcBtn.onclick = () => { calcModal.style.display = "none"; };
     }
-    window.addEventListener("click", function(e) {
+    window.addEventListener("click", function (e) {
         if (e.target === calcModal) calcModal.style.display = "none";
     });
 
     document.querySelectorAll(".calc-btn").forEach(btn => {
-        btn.onclick = function() {
+        btn.onclick = function () {
             const action = btn.getAttribute("data-action");
-            if (!isNaN(action)) { 
+            if (!isNaN(action)) {
                 if (calcValue === "0" || calcReset) {
                     calcValue = action;
                     calcReset = false;
@@ -495,5 +495,88 @@ window.addEventListener("DOMContentLoaded", () => {
         };
     });
     updateCalcDisplay();
+    tableForNames();
+    ColumnTag();
 });
 
+
+function tableForNames() {
+    const categorySelect = document.getElementById("category-select");
+    const monthPicker = document.getElementById("month-picker");
+    const givingsHeader = document.getElementById("givings-header");
+    const givingsBody = document.getElementById("givings-body");
+
+    async function loadGivingsTable() {
+        const category = categorySelect.value;
+        const month = monthPicker.value;
+        if (!category || !month) return;
+
+        const res = await fetch(`/api/givings-per-person/${encodeURIComponent(category)}?month=${month}`);
+        const data = await res.json();
+
+        if (!data.dates || data.dates.length === 0) {
+            givingsHeader.innerHTML = "<th>No data</th>";
+            givingsBody.innerHTML = "";
+            return;
+        }
+
+        // Header with numbering column
+        givingsHeader.innerHTML = `<th>#</th><th>Name</th>` + data.dates
+            .map(d => `<th>${new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</th>`)
+            .join("");
+
+        // Rows with numbering
+        givingsBody.innerHTML = data.data.map((row, idx) => {
+            let cells = `<td>${idx + 1}</td><td>${row.name}</td>`;
+            data.dates.forEach(d => {
+                cells += `<td>${row[d] ? row[d].toFixed(2) : ""}</td>`;
+            });
+            return `<tr>${cells}</tr>`;
+        }).join("");
+    }
+
+    categorySelect.addEventListener("change", loadGivingsTable);
+    monthPicker.addEventListener("change", loadGivingsTable);
+
+    // Default to current month
+    const now = new Date();
+    monthPicker.value = now.toISOString().slice(0, 7);
+    loadGivingsTable();
+}
+
+
+function ColumnTag() {
+    const table = document.getElementById("givings-table");
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    const infoBox = document.getElementById("info-box");
+
+    table.addEventListener("click", function (e) {
+        if (e.target.tagName.toLowerCase() === "td") {
+            const td = e.target;
+            const row = td.parentElement;
+            const colIndex = Array.from(row.children).indexOf(td);
+
+            // Column 0 = number, column 1 = name, column 2+ = dates
+            const headerText = table.querySelector(`thead th:nth-child(${colIndex + 1})`)?.innerText || "Unknown Date";
+
+            const name = row.children[1]?.innerText || "N/A"; // Name is column 1
+            const amount = td.innerText || "₱0";
+
+            infoBox.innerHTML = `<strong>${headerText}</strong><br>Name: ${name}<br>Giving: ${amount}`;
+            infoBox.style.left = e.pageX + 10 + "px";
+            infoBox.style.top = e.pageY + 10 + "px";
+            infoBox.style.display = "block";
+
+            clearTimeout(infoBox.timeout);
+            infoBox.timeout = setTimeout(() => {
+                infoBox.style.display = "none";
+            }, 2500);
+        }
+    });
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest("#givings-table")) {
+            infoBox.style.display = "none";
+        }
+    });
+}

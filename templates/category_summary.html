@@ -45,9 +45,7 @@
     </nav>
 
     <main>
-        <button id="scroll-calculator-btn" title="Open Calculator"
-            class="navbar-calc-btn"
-            style="
+        <button id="scroll-calculator-btn" title="Open Calculator" class="navbar-calc-btn" style="
                 background:#222;
                 color:#f1c40f;
                 border:none;
@@ -85,7 +83,7 @@
             <option value="tithes">Tithes</option>
             <option value="offering">Offering</option>
             <option value="fp">FP</option>
-            <option value="hor">HOR</option>          
+            <option value="hor">HOR</option>
             <option value="sundayschool">Sunday School</option>
             <option value="for_visitor">For Visitor(bigas)</option>
             <option value="others">Others</option>
@@ -93,7 +91,7 @@
             <option value="church tithes">Church Tithes</option>
             <option value="fp(tithes)">FP (Tithes)</option>
             <option value="hor(tithes)">HOR (Tithes)</option>
-            <option value="sundayschool(tithes)">Sunday School (Tithes)</option>  
+            <option value="sundayschool(tithes)">Sunday School (Tithes)</option>
             <option value="fp(hq)">FP (HQ)</option>
             <option value="hor(hq)">HOR (HQ)</option>
             <option value="soc">SOC</option>
@@ -126,7 +124,7 @@
                         <th>Type</th>
                         <th>Amount</th>
                         <th>Label</th>
-                        <th>Total Expenses</th> 
+                        <th>Total Expenses</th>
                         <th>Remaining</th>
                         <th>Action</th>
 
@@ -138,7 +136,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <div class="modal-overlay" id="expense-modal">
             <div class="modal-content">
                 <span class="modal-close" id="close-expense-modal">&times;</span>
@@ -146,9 +144,9 @@
                 <form id="expense-form">
                     <!-- 🔧 Fix: Add this hidden input for expense ID -->
                     <input type="hidden" id="modal-expense-id">
-                    
+
                     <input type="hidden" id="expense-date" name="date">
-                    
+
                     <label for="expense-amount">Amount:</label>
                     <input type="number" id="expense-amount" step="0.01" required>
 
@@ -164,7 +162,8 @@
         </div>
 
         {% if is_admin %}
-        <button id="add-expense-btn" style="padding: 8px 16px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        <button id="add-expense-btn"
+            style="padding: 8px 16px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
             + Add Expense
         </button>
         {% else %}
@@ -203,6 +202,35 @@
                 </div>
             </div>
         </div>
+
+        <h4>Givings Per Person (Monthly)</h4>
+
+        <div>
+            <label for="month-picker">Select Month:</label>
+            <input type="month" id="month-picker" />
+        </div>
+
+        <div class="table-wrapper">
+            <table id="givings-table">
+                <thead>
+                    <tr id="givings-header"></tr>
+                </thead>
+                <tbody id="givings-body"></tbody>
+            </table>
+        </div>
+        <div id="info-box" style="
+            position:absolute;
+            display:none;
+            background:#333;
+            color:white;
+            padding:8px;
+            border-radius:4px;
+            font-size:0.9rem;
+            z-index:9999;
+        "></div>
+
+
+
     </main>
 </body>
 

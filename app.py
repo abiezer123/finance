@@ -612,5 +612,39 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route("/api/givings-per-person/<category>")
+def category_givings(category):
+    month = request.args.get("month")  # e.g. "2025-08"
+    if not month:
+        return jsonify({"error": "Month parameter is required"}), 400
+
+    # Find all distinct dates for this category in the given month
+    date_regex = f"^{month}-"
+    dates = sorted(mongo.db.entries.distinct("date", {category: {"$gt": 0}, "date": {"$regex": date_regex}}))
+
+    # Get all entries for that month & category
+    entries = list(mongo.db.entries.find(
+        {"date": {"$regex": date_regex}, category: {"$gt": 0}},
+        {"_id": 0, "name": 1, "date": 1, category: 1}
+    ))
+
+    # Unique names
+    names = sorted(set(e["name"] for e in entries))
+
+    # Build table data
+    table_data = []
+    for name in names:
+        row = {"name": name}
+        for date in dates:
+            amount = next((e[category] for e in entries if e["name"] == name and e["date"] == date), 0)
+            row[date] = amount
+        table_data.append(row)
+
+    return jsonify({
+        "dates": dates,
+        "data": table_data
+    })
+
+
 if __name__ == "__main__":
     app.run(debug=True)
