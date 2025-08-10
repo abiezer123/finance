@@ -387,12 +387,6 @@ hr {
     h3 {
         text-align: center;
     }
-
-
-    .table-wrapper {
-        touch-action: pan-x pinch-zoom;
-
-    }
 }
 
 
