@@ -560,7 +560,8 @@ function ColumnTag() {
             const headerText = table.querySelector(`thead th:nth-child(${colIndex + 1})`)?.innerText || "Unknown Date";
 
             const name = row.children[1]?.innerText || "N/A"; // Name is column 1
-            const amount = td.innerText || "₱0";
+            const amount = td.innerText ? `₱${td.innerText}` : "₱0";
+
 
             infoBox.innerHTML = `<strong>${headerText}</strong><br>Name: ${name}<br>Giving: ${amount}`;
             infoBox.style.left = e.pageX + 10 + "px";
