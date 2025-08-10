@@ -499,7 +499,6 @@ window.addEventListener("DOMContentLoaded", () => {
     ColumnTag();
 });
 
-
 function tableForNames() {
     const categorySelect = document.getElementById("category-select");
     const monthPicker = document.getElementById("month-picker");
@@ -520,19 +519,42 @@ function tableForNames() {
             return;
         }
 
-        // Header with numbering column
-        givingsHeader.innerHTML = `<th>#</th><th>Name</th>` + data.dates
-            .map(d => `<th>${new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</th>`)
-            .join("");
+        // Header with numbering column + totals column
+        givingsHeader.innerHTML = `<th>#</th><th>Name</th>` +
+            data.dates
+                .map(d => `<th>${new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</th>`)
+                .join("") +
+            `<th>Total</th>`;
 
-        // Rows with numbering
+        // Prepare totals
+        let colTotals = Array(data.dates.length).fill(0);
+        let grandTotal = 0;
+
+        // Rows with numbering, row totals, and peso formatting
         givingsBody.innerHTML = data.data.map((row, idx) => {
+            let rowTotal = 0;
             let cells = `<td>${idx + 1}</td><td>${row.name}</td>`;
-            data.dates.forEach(d => {
-                cells += `<td>${row[d] ? row[d].toFixed(2) : ""}</td>`;
+
+            data.dates.forEach((d, colIdx) => {
+                let val = row[d] || 0;
+                rowTotal += val;
+                colTotals[colIdx] += val;
+                cells += `<td>${val ? `${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : ""}</td>`;
             });
+
+            grandTotal += rowTotal;
+            cells += `<td><strong>₱${rowTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></td>`;
             return `<tr>${cells}</tr>`;
         }).join("");
+
+        // Footer row for totals
+        let totalRow = `<tr><th colspan="2">Total</th>`;
+        colTotals.forEach(val => {
+            totalRow += `<th>₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
+        });
+        totalRow += `<th><strong>₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></th></tr>`;
+
+        givingsBody.innerHTML += totalRow;
     }
 
     categorySelect.addEventListener("change", loadGivingsTable);
