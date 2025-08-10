@@ -426,7 +426,7 @@ function updateTable(data) {
             <td>${row.for_visitor ? `₱${parseFloat(row.for_visitor).toFixed(2)}` : ""}</td>
             <td>${row.amd ? `₱${parseFloat(row.amd).toFixed(2)}` : ""}</td>
             <td>${row.others ? `₱${parseFloat(row.others).toFixed(2)} (${row.others_label || "N/A"})` : ""}</td>
-            <td><strong>${total ? `₱${total.toFixed(2)}` : ""}<strong></td>
+            <td style="background-color: #d1ffd1; font-weight: bold;"><strong>${total ? `₱${total.toFixed(2)}` : ""}<strong></td>
             <td style="display:flex; flex-direction:column; gap:12px; justify-content:center; min-width:110px;">
                 <button onclick="editEntry('${row._id}')" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
                 <button onclick="confirmDelete(${index})" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
@@ -437,7 +437,7 @@ function updateTable(data) {
 
     // Totals row
     tfoot.innerHTML = `
-        <tr>
+        <tr style="background-color: #c7e7c7ff; font-weight: bold;">
             <td colspan="2"><strong>Totals:</strong></td>
             <td>₱${totals.tithes.toFixed(2)}</td>
             <td>₱${totals.offering.toFixed(2)}</td>
@@ -450,7 +450,7 @@ function updateTable(data) {
             <td>₱${totals.for_visitor.toFixed(2)}</td>
             <td>₱${totals.amd.toFixed(2)}</td>
             <td>₱${totals.others.toFixed(2)}</td>
-            <td></td>
+            <td style="background-color: #4daf4dff; color: white; font-weight: bold;">₱${(totals.tithes + totals.offering + totals.sfc + totals.fp + totals.ph + totals.hor + totals.soc + totals.sundayschool + totals.for_visitor + totals.amd + totals.others).toFixed(2)}</td>
         </tr>
     `;
 

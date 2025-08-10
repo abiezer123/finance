@@ -600,7 +600,7 @@ function tableForNames() {
         });
         totalRow += `<th style="background-color: #d1ffd1;">₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
         deductionTotals.forEach(val => {
-            totalRow += `<th style="background-color: orange; color: white;">
+            totalRow += `<th style="background-color: #FFDAB9; color: black;">
                         ₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                     </th>`;
         });
