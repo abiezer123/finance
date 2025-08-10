@@ -575,27 +575,34 @@ function tableForNames() {
 
             grandTotal += rowTotal;
 
-            // Total column
-            cells += `<td><strong>₱${rowTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></td>`;
+            // Total column (highlighted)
+            cells += `<td style="background-color: #d1ffd1; font-weight: bold;">
+                    ₱${rowTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                </td>`;
 
-            // Deduction columns
+            // Deduction columns (orange)
             deductions.forEach((ded, i) => {
                 let dedAmount = rowTotal * ded.percent;
                 deductionTotals[i] += dedAmount;
-                cells += `<td>₱${dedAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>`;
+                cells += `<td style="background-color: #FFDAB9; color: black;">
+                        ₱${dedAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                    </td>`;
             });
 
             return `<tr>${cells}</tr>`;
         }).join("");
 
         // Footer totals row
-        let totalRow = `<tr><th colspan="2">Total</th>`;
+        let totalRow = `<tr style="font-weight: bold; background-color: #f0f0f0;">
+        <th colspan="2">Total</th>`;
         colTotals.forEach(val => {
             totalRow += `<th>₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
         });
-        totalRow += `<th><strong>₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></th>`;
+        totalRow += `<th style="background-color: #d1ffd1;">₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
         deductionTotals.forEach(val => {
-            totalRow += `<th>₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
+            totalRow += `<th style="background-color: orange; color: white;">
+                        ₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                    </th>`;
         });
         totalRow += `</tr>`;
 

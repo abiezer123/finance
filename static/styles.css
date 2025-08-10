@@ -340,7 +340,9 @@ th,
 td {
     padding: 10px;
     text-align: center;
-    border-bottom: 1px solid #e1e4e8;
+    border: 1px solid #e5e7eb;
+    /* Soft modern gray for subtle grid lines */
+    padding: 8px;
     vertical-align: middle;
 }
 
@@ -704,4 +706,3 @@ tr.highlighted {
     background-color: #f9e79f !important;
     /* Light yellow highlight */
 }
-
