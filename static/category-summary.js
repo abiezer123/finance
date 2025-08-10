@@ -499,11 +499,38 @@ window.addEventListener("DOMContentLoaded", () => {
     ColumnTag();
 });
 
+
 function tableForNames() {
     const categorySelect = document.getElementById("category-select");
     const monthPicker = document.getElementById("month-picker");
     const givingsHeader = document.getElementById("givings-header");
     const givingsBody = document.getElementById("givings-body");
+
+    // Deduction percentages (match your backend logic)
+    const categoryDeductions = {
+        "tithes": [
+            { name: "Tithes - 10%", percent: 0.10 },
+            { name: "Offering - 30%", percent: 0.30 },
+            { name: "CRV - 10%", percent: 0.10 },
+            { name: "Pastor - 50%", percent: 0.50 }
+        ],
+        "offering": [
+            { name: "Church Tithes - 10%", percent: 0.10 },
+            { name: "CRV - 10%", percent: 0.10 }
+        ],
+        "fp": [
+            { name: "Tithes - 10%", percent: 0.10 },
+            { name: "HQ - 45%", percent: 0.45 }
+        ],
+        "hor": [
+            { name: "Tithes - 10%", percent: 0.10 },
+            { name: "HQ - 45%", percent: 0.45 }
+        ],
+        "sundayschool": [
+            { name: "Tithes - 10%", percent: 0.10 }
+        ],
+        // Other categories: no deductions
+    };
 
     async function loadGivingsTable() {
         const category = categorySelect.value;
@@ -519,40 +546,58 @@ function tableForNames() {
             return;
         }
 
-        // Header with numbering column + totals column
-        givingsHeader.innerHTML = `<th>#</th><th>Name</th>` +
-            data.dates
-                .map(d => `<th>${new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</th>`)
-                .join("") +
-            `<th>Total</th>`;
+        // Get deduction rules for current category
+        const deductions = categoryDeductions[category] || [];
 
-        // Prepare totals
+        // Build header: number + name + each date + total + deductions
+        givingsHeader.innerHTML = `<th>#</th><th>Name</th>` +
+            data.dates.map(d => `<th>${new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</th>`).join("") +
+            `<th>Total</th>` +
+            deductions.map(ded => `<th>${ded.name}</th>`).join("");
+
+        // Column totals
         let colTotals = Array(data.dates.length).fill(0);
         let grandTotal = 0;
+        let deductionTotals = Array(deductions.length).fill(0);
 
-        // Rows with numbering, row totals, and peso formatting
+        // Build rows
         givingsBody.innerHTML = data.data.map((row, idx) => {
             let rowTotal = 0;
             let cells = `<td>${idx + 1}</td><td>${row.name}</td>`;
 
+            // Date columns
             data.dates.forEach((d, colIdx) => {
                 let val = row[d] || 0;
                 rowTotal += val;
                 colTotals[colIdx] += val;
-                cells += `<td>${val ? `${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : ""}</td>`;
+                cells += `<td>${val ? `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : ""}</td>`;
             });
 
             grandTotal += rowTotal;
+
+            // Total column
             cells += `<td><strong>₱${rowTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></td>`;
+
+            // Deduction columns
+            deductions.forEach((ded, i) => {
+                let dedAmount = rowTotal * ded.percent;
+                deductionTotals[i] += dedAmount;
+                cells += `<td>₱${dedAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>`;
+            });
+
             return `<tr>${cells}</tr>`;
         }).join("");
 
-        // Footer row for totals
+        // Footer totals row
         let totalRow = `<tr><th colspan="2">Total</th>`;
         colTotals.forEach(val => {
             totalRow += `<th>₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
         });
-        totalRow += `<th><strong>₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></th></tr>`;
+        totalRow += `<th><strong>₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</strong></th>`;
+        deductionTotals.forEach(val => {
+            totalRow += `<th>₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</th>`;
+        });
+        totalRow += `</tr>`;
 
         givingsBody.innerHTML += totalRow;
     }
@@ -565,6 +610,7 @@ function tableForNames() {
     monthPicker.value = now.toISOString().slice(0, 7);
     loadGivingsTable();
 }
+
 
 
 function ColumnTag() {

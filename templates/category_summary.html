@@ -74,10 +74,9 @@
             </svg>
         </button>
 
+        <h4>Givings Per Person (Monthly)</h4>
 
-        <h3>Church Fund Category Summary</h3>
-
-        <label for="category-select">Select Category:</label>
+        <label for="category-select">Category:</label>
         <select id="category-select">
             {% if username == 'admin' %}
             <option value="tithes">Tithes</option>
@@ -109,9 +108,35 @@
             <option value="others">Others</option>
             {% endif %}
         </select>
+        <br>
+        <br>
+        <div>
+            <label for="month-picker">Month:</label>
+            <input type="month" id="month-picker" />
+        </div>
 
+        <div class="table-wrapper">
+            <table id="givings-table">
+                <thead>
+                    <tr id="givings-header"></tr>
+                </thead>
+                <tbody id="givings-body"></tbody>
+            </table>
+        </div>
+        <div id="info-box" style="
+            position:absolute;
+            display:none;
+            background:#333;
+            color:white;
+            padding:8px;
+            border-radius:4px;
+            font-size:0.9rem;
+            z-index:9999;
+        "></div>
 
+        <hr>
 
+        <h3>Church Fund Category Summary</h3>
 
         <h4 id="category-title">Tithes</h4>
         <h5 id="cash-on-hand" style="margin-bottom: 16px; font-size: 1.5rem;">Cash on Hand: ₱0.00</h5>
@@ -202,32 +227,6 @@
                 </div>
             </div>
         </div>
-
-        <h4>Givings Per Person (Monthly)</h4>
-
-        <div>
-            <label for="month-picker">Select Month:</label>
-            <input type="month" id="month-picker" />
-        </div>
-
-        <div class="table-wrapper">
-            <table id="givings-table">
-                <thead>
-                    <tr id="givings-header"></tr>
-                </thead>
-                <tbody id="givings-body"></tbody>
-            </table>
-        </div>
-        <div id="info-box" style="
-            position:absolute;
-            display:none;
-            background:#333;
-            color:white;
-            padding:8px;
-            border-radius:4px;
-            font-size:0.9rem;
-            z-index:9999;
-        "></div>
 
 
 
