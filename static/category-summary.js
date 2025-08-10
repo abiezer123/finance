@@ -656,3 +656,57 @@ function ColumnTag() {
         }
     });
 }
+
+
+document.getElementById("download-docx").addEventListener("click", () => {
+    const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = window.docx;
+
+    const category = document.getElementById("category-select").value;
+    const month = document.getElementById("month-picker").value;
+
+    const tableEl = document.getElementById("givings-table");
+    if (!tableEl) {
+        alert("No table found!");
+        return;
+    }
+
+    // Convert HTML table to docx Table
+    const rows = Array.from(tableEl.querySelectorAll("tr")).map(tr => {
+        const cells = Array.from(tr.querySelectorAll("th, td")).map(td => {
+            return new TableCell({
+                width: { size: 2000, type: WidthType.DXA },
+                children: [new Paragraph({ children: [new TextRun(td.innerText)] })]
+            });
+        });
+        return new TableRow({ children: cells });
+    });
+
+    const doc = new Document({
+        sections: [{
+            properties: {},
+            children: [
+                new Paragraph({
+                    children: [new TextRun({ text: `Category: ${category}`, bold: true, size: 28 })]
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: `Month: ${month}`, bold: true, size: 24 })]
+                }),
+                new Paragraph({ text: "" }),
+                new Table({ rows })
+            ]
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${category}_${month}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+});
+
+
+
