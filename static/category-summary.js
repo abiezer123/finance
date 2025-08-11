@@ -269,14 +269,12 @@ async function fetchCategoryData(category) {
 
         let amountClass = 'text-red';
         if (isTotalGiving || isDerivedInput) {
-            amountClass = 'text-green';
+            amountClass = 'text-black';
         } else if (isTotalDeduction) {
-            amountClass = 'text-orange';
+            amountClass = 'text-black';
         } else if (isTotalExpenses) {
             amountClass = 'text-dark-red';
         }
-
-
 
         let amountValue = parseFloat(entry.amount).toLocaleString('en-US', {
             minimumFractionDigits: 2,
@@ -294,7 +292,6 @@ async function fetchCategoryData(category) {
         const remaining = entry.remaining !== undefined ? `₱${parseFloat(entry.remaining).toFixed(2)}` : "-";
         const isDeletable = entry.source === "manual";
 
-
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${entry.date}</td>
@@ -309,8 +306,17 @@ async function fetchCategoryData(category) {
                     <button class="delete-btn" style="background-color: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;" data-id="${getEntryId(entry)}">Delete</button>
                 ` : "-"}
             </td>
-
         `;
+
+        //Highlight Total Giving rows
+        if (isTotalGiving) {
+            tr.style.backgroundColor = "#d1ffd1";
+        } else if (isTotalExpenses) {
+            tr.style.backgroundColor = "#FFDAB9";
+        } else if (isTotalDeduction) {
+            tr.style.backgroundColor = "#ffd595ff";
+        }
+
 
 
         if (isDeletable) {
@@ -333,7 +339,6 @@ async function fetchCategoryData(category) {
             });
 
             editBtn.addEventListener("click", () => {
-
                 modalCategorySelect.style.display = "none";
                 modal.style.display = "block";
                 document.getElementById("modal-category-name").textContent = currentCategory;
@@ -341,14 +346,11 @@ async function fetchCategoryData(category) {
                 document.getElementById("expense-label").value = entry.label || "";
                 document.getElementById("expense-amount").value = entry.amount;
                 document.getElementById("modal-expense-id").value = getEntryId(entry);
-
                 modal.setAttribute("data-mode", "edit");
             });
         }
 
-        tableBody.appendChild(tr); // ⬅️ make sure this is outside the if-block!
-
-
+        tableBody.appendChild(tr);
     });
 
     cashDisplay.textContent = `Cash on Hand: ₱${totalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;

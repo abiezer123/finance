@@ -483,6 +483,10 @@ hr {
     color: green;
 }
 
+.text-black {
+    color: black;
+}
+
 .text-orange {
     color: rgb(235, 154, 33);
     font-weight: bold;
