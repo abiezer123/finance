@@ -235,6 +235,35 @@
         <h4 id="overall-income-total"></h4>
 
         <hr>
+
+        <form id="offering-form" method="POST" action="/">
+            <input type="hidden" name="date" id="form-date">
+
+            <input type="text" name="name" id="name" placeholder="Name">
+
+            <input type="number" step="any" name="tithes" id="tithes" placeholder="Tithes">
+            <input type="number" step="any" name="offering" id="offering" placeholder="Offering">
+            <input type="number" step="any" name="sfc" id="sfc" placeholder="SFC">
+            <input type="number" step="any" name="fp" id="fp" placeholder="FP">
+            <input type="number" step="any" name="ph" id="ph" placeholder="PH">
+            <input type="number" step="any" name="hor" id="hor" placeholder="HOR">
+            <input type="number" step="any" name="soc" id="soc" placeholder="SOC">
+            <input type="number" step="any" name="sundayschool" id="sundayschool" placeholder="Sunday School">
+            <input type="number" step="any" name="for_visitor" id="for_visitor" placeholder="For Visitor(bigas)">
+            <input type="number" step="any" name="amd" id="amd" placeholder="AMD">
+            <input type="number" step="any" name="others" id="others" placeholder="Others Amount">
+
+            <input type="text" name="others_label" id="other-label" placeholder="Other Label">
+
+            <button type="submit" style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">
+                Add Entry
+            </button>
+        </form>
+
+        <br>
+        <hr>
+        <br>
+        <br>
         <button id="expenses-button"
             style="background-color: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
             Add Expense
@@ -265,32 +294,6 @@
         </div>
         <br>
         <h4 id="overall-final-total"></h4>
-
-
-        <form id="offering-form" method="POST" action="/">
-            <input type="hidden" name="date" id="form-date">
-
-            <input type="text" name="name" id="name" placeholder="Name">
-
-            <input type="number" step="any" name="tithes" id="tithes" placeholder="Tithes">
-            <input type="number" step="any" name="offering" id="offering" placeholder="Offering">
-            <input type="number" step="any" name="sfc" id="sfc" placeholder="SFC">
-            <input type="number" step="any" name="fp" id="fp" placeholder="FP">
-            <input type="number" step="any" name="ph" id="ph" placeholder="PH">
-            <input type="number" step="any" name="hor" id="hor" placeholder="HOR">
-            <input type="number" step="any" name="soc" id="soc" placeholder="SOC">
-            <input type="number" step="any" name="sundayschool" id="sundayschool" placeholder="Sunday School">
-            <input type="number" step="any" name="for_visitor" id="for_visitor" placeholder="For Visitor(bigas)">
-            <input type="number" step="any" name="amd" id="amd" placeholder="AMD">
-            <input type="number" step="any" name="others" id="others" placeholder="Others Amount">
-
-            <input type="text" name="others_label" id="other-label" placeholder="Other Label">
-
-            <button type="submit" style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">
-                Add Entry
-            </button>
-        </form>
-
 
         <!-- Add Expenses Modal -->
         <div id="expenses-modal" class="modal-overlay">

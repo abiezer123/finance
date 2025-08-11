@@ -10,6 +10,7 @@ const selectedDate = urlParams.get("date") || new Date().toISOString().split("T"
 
 document.addEventListener("DOMContentLoaded", () => {
     initializeDOMReference();
+    addingEntry();
     calculatorIconWhenScrolled();
     calculator();
     searchDate(selectedDate);
@@ -20,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ExpensesSubmit();
     entriesColumnTag();
     expensesColumnTag();
+    closeSummaryModal();
 });
 
 
@@ -245,9 +247,7 @@ function downloadJPG() {
         link.href = canvas.toDataURL("image/jpeg");
         link.click();
     });
-    document.getElementById("close-summary-modal").addEventListener("click", () => {
-        document.getElementById("summary-modal").style.display = "none";
-    });
+
 }
 
 
@@ -729,7 +729,7 @@ function deleteExpense(id) {
 async function loadAllTimeCashSummary() {
     const modal = document.getElementById("summary-modal");
     const tbody = document.getElementById("summary-details-body");
-    const cashDisplay = document.getElementById("offering-cash");  // ✅ define it properly
+    const cashDisplay = document.getElementById("offering-cash");
 
     modal.style.display = "block";
     tbody.innerHTML = "";
@@ -807,8 +807,24 @@ async function loadAllTimeCashSummary() {
         console.error("Summary fetch error:", err);
         tbody.innerHTML = `<tr><td colspan="4">Error loading summary.</td></tr>`;
     }
+
 }
 
+function closeSummaryModal() {
+    const summaryModal = document.getElementById("summary-modal");
+    const closeSummaryModalBtn = document.getElementById("close-summary-modal");
+
+    closeSummaryModalBtn.addEventListener("click", () => {
+        summaryModal.style.display = "none";
+    });
+
+    window.addEventListener("click", (event) => {
+        if (event.target === summaryModal) {
+            summaryModal.style.display = "none";
+        }
+    });
+
+}
 
 function updateCashOnHand() {
     fetch("/api/alltime-summary")
@@ -849,4 +865,12 @@ function updateCashOnHand() {
         });
 }
 
+function addingEntry() {
+    window.addEventListener("load", () => {
+        const offeringForm = document.getElementById("offering-form");
+        if (offeringForm) {
+            offeringForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    });
 
+}
