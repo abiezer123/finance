@@ -285,12 +285,18 @@ function entriesColumnTag() {
             const row = td.parentElement;
             const colIndex = Array.from(row.children).indexOf(td);
 
-            const headerText = headers[colIndex]?.innerText || "Unknown";
             const name = row.children[1]?.innerText || "N/A"; // 
             const amount = td.innerText ? `${td.innerText}` : "₱0";
+            let headerText = "";
 
+            if (row.closest("tfoot")) {
+                headerText = headers[colIndex + 1]?.innerText || "Unknown";
+                infoBox.innerHTML = `<strong>${headerText}</strong><br>- ${amount}`;
+            } else {
+                headerText = headers[colIndex]?.innerText || "Unknown";
+                infoBox.innerHTML = `<strong>${headerText}</strong><br>- ${name}<br>- ${amount}`;
+            }
 
-            infoBox.innerHTML = `<strong>${headerText}</strong><br>- ${name}<br>- ${amount}`;
             infoBox.style.left = e.pageX + 10 + "px";
             infoBox.style.top = e.pageY + 10 + "px";
             infoBox.style.display = "block";
