@@ -167,15 +167,18 @@ function calculatorIconWhenScrolled() {
 //search using date
 function searchDate(selectedDate) {
     const selectedDateDisplay = document.getElementById("selected-date");
+    const selectedDateDisplayCopy = document.getElementById("selected-date-copy");
     const dateInput = document.getElementById("entry-date");
     const formDateInput = document.getElementById("form-date");
     dateInput.value = selectedDate;
     selectedDateDisplay.textContent = formatDatePretty(selectedDate);
+    selectedDateDisplayCopy.textContent = formatDatePretty(selectedDate);
     if (formDateInput) formDateInput.value = selectedDate;
 
     dateInput.addEventListener("change", () => {
         const selectedDate = dateInput.value;
         selectedDateDisplay.textContent = formatDatePretty(selectedDate);
+        selectedDateDisplayCopy.textContent = formatDatePretty(selectedDate);
         if (formDateInput) formDateInput.value = selectedDate;
         history.replaceState(null, "", `/?date=${selectedDate}`);
         fetchAndUpdateTable(selectedDate);
@@ -468,7 +471,8 @@ function updateTable(data) {
         }
     });
 
-    document.getElementById("overall-income-total").textContent = `Total Givings: ₱${entryTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    const overallIncomeTotal = document.getElementById("overall-income-total");
+    overallIncomeTotal.innerHTML = `Total Givings: <span style="color: green; font-weight: bold;">₱${entryTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`;
     enableRowHighlighting();
 }
 
