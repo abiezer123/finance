@@ -327,27 +327,50 @@ def category_summary():
     is_admin = username == "admin"  # or check against a user role from the DB
     return render_template("category_summary.html", username=username, is_admin=is_admin)
 
+
 @app.route("/api/category-history/<category>")
 def category_history(category):
-    base_categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "sundayschool", "for_visitor", "others", "amd"]
+    base_categories = [
+        "tithes", "offering", "sfc", "fp", "ph", "hor", "soc",
+        "sundayschool", "for_visitor", "others", "amd"
+    ]
     derived_categories = [
-        "tithes(tithes)", "church tithes", "fp(tithes)", "hor(tithes)", "soc(tithes)",
-        "sundayschool(tithes)", "for_visitor(tithes)", "others(tithes)", "crv",
-        "fp(hq)", "hor(hq)", "sfc(hq)", "ph(hq)"
+        "tithes(tithes)", "church tithes", "fp(tithes)", "hor(tithes)",
+        "soc(tithes)", "sundayschool(tithes)", "for_visitor(tithes)",
+        "others(tithes)", "crv", "fp(hq)", "hor(hq)", "sfc(hq)", "ph(hq)"
     ]
 
-    all_dates = sorted(set(mongo.db.entries.distinct("date") + mongo.db.expenses.distinct("date")))
+    def safe_parse_date(date_str):
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d").strftime("%B %d, %Y")
+        except Exception:
+            return str(date_str) if date_str else "-"
+
+    def safe_float(val):
+        try:
+            return float(val)
+        except Exception:
+            return 0.0
+
+    all_dates = sorted(set(
+        mongo.db.entries.distinct("date") +
+        mongo.db.expenses.distinct("date")
+    ))
     result = []
 
     if category in base_categories:
         total_remaining_cash = 0
 
         for date in all_dates:
-            formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
+            if not date:
+                continue
+
+            formatted_date = safe_parse_date(date)
             entry_docs = list(mongo.db.entries.find({"date": date}))
             expense_docs = list(mongo.db.expenses.find({"date": date, "from": category}))
-            total_giving = sum(float(e.get(category, 0)) for e in entry_docs)
-            total_expense = sum(float(e.get("amount", 0)) for e in expense_docs)
+
+            total_giving = sum(safe_float(e.get(category, 0)) for e in entry_docs)
+            total_expense = sum(safe_float(e.get("amount", 0)) for e in expense_docs)
 
             if total_giving == 0 and not expense_docs:
                 continue
@@ -379,9 +402,7 @@ def category_history(category):
                     {"date": formatted_date, "type": "church tithes - 10%", "amount": tithes_cut, "label": ""},
                     {"date": formatted_date, "type": "CRV - 10%", "amount": crv_cut, "label": ""},
                     {"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""}
-                    
-
-                ])
+            ])
             elif category in ["fp", "hor"]:
                 tithes_cut = total_giving * 0.10
                 hq_cut = total_giving * 0.45
@@ -391,38 +412,36 @@ def category_history(category):
                     {"date": formatted_date, "type": f"{category.upper()}(Tithes) - 10%", "amount": tithes_cut, "label": ""},
                     {"date": formatted_date, "type": f"{category.upper()} (HQ) - 45%", "amount": hq_cut, "label": ""},
                     {"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""}
-                    
-                ])
+            ])
             elif category in ["sfc", "ph"]:
                 breakdown.append({
                     "date": formatted_date,
                     "type": category.upper(),
                     "amount": total_giving,
                     "label": ""
-                })
-
+            })
             elif category == "sundayschool":
                 tithes_cut = total_giving * 0.10
                 remaining = total_giving - tithes_cut - total_expense
-                breakdown.append({
-                    "date": formatted_date,
-                    "type": "SundaySchool(Tithes) - 10%",
-                    "amount": tithes_cut,
-                    "label": ""
-                })
+                breakdown.append({"date": formatted_date, "type": "SundaySchool(Tithes) - 10%", "amount": tithes_cut, "label": ""})
                 breakdown.append({"date": formatted_date, "type": "Expenses", "amount": total_expense, "label": ""})
-            
             else:
                 remaining -= total_expense
                 breakdown.append({"date": formatted_date, "type": "Total Expenses", "amount": total_expense, "label": ""})
 
-            breakdown.insert(1, {"date": formatted_date, "type": "Total Deduction", "amount": total_giving - remaining, "label": "", "remaining": remaining})
+            breakdown.insert(1, {
+                "date": formatted_date,
+                "type": "Total Deduction",
+                "amount": total_giving - remaining,
+                "label": "",
+                "remaining": remaining
+            })
 
             for e in expense_docs:
                 breakdown.append({
                     "date": formatted_date,
                     "type": "Expenses",
-                    "amount": float(e.get("amount", 0)),
+                    "amount": safe_float(e.get("amount", 0)),
                     "label": e.get("label", ""),
                     "source": e.get("source", ""),
                     "_id": str(e.get("_id"))
@@ -439,11 +458,15 @@ def category_history(category):
         total_manual_expense = 0
 
         for date in all_dates:
+            if not date:
+                continue
+
+            formatted_date = safe_parse_date(date)
             entry_docs = list(mongo.db.entries.find({"date": date}))
             expense_docs = list(mongo.db.expenses.find({"date": date, "from": category}))
             formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
 
-            get_sum = lambda k: sum(float(e.get(k, 0)) for e in entry_docs)
+            get_sum = lambda k: sum(safe_float(e.get(k, 0)) for e in entry_docs)
 
             tithes = get_sum("tithes")
             offering = get_sum("offering")
@@ -490,16 +513,15 @@ def category_history(category):
                 result.append({
                     "date": formatted_date,
                     "type": "Expenses",
-                    "amount": float(e.get("amount", 0)),
+                    "amount": safe_float(e.get("amount", 0)),
                     "label": e.get("label", ""),
                     "source": e.get("source", ""),
                     "_id": str(e.get("_id"))
                 })
-                total_manual_expense += float(e.get("amount", 0))
+                total_manual_expense += safe_float(e.get("amount", 0))
 
         result.append({"date": "-", "type": "Cash on Hand", "amount": total_derived_amount - total_manual_expense, "label": ""})
         return jsonify(result)
-
 
         
 @app.route("/api/manual-category-expense", methods=["POST"])
