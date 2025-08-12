@@ -660,55 +660,67 @@ function ColumnTag() {
 }
 
 
-document.getElementById("download-docx").addEventListener("click", () => {
-    const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = window.docx;
+document.getElementById("print-table-btn").addEventListener("click", () => {
+    const table = document.getElementById("givings-table");
+    const printWindow = window.open('', '', 'width=800,height=600');
+    const categorySelect = document.getElementById("category-select"); // Assuming your dropdown has this ID
+    const selectedCategory = categorySelect ? categorySelect.value : "";
 
-    const category = document.getElementById("category-select").value;
-    const month = document.getElementById("month-picker").value;
+    printWindow.document.write(`
+    <html>
+      <head>
+        <title>Empire- ${selectedCategory.toUpperCase()} </title>
+        <style>
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-family: Arial, sans-serif;
+            }
+            th, td {
+              border: 1px solid #999;
+              padding: 6px 10px;
+              text-align: left;
+            }
+            thead th {
+              background-color: #4A90E2;
+              color: white;
+            }
+            tbody tr:nth-child(even) {
+              background-color: #fafafa;
+            }
+            tbody td[style*="background-color: #d1ffd1"] {
+              background-color: #d1ffd1 !important;
+              font-weight: bold;
+            }
+            tbody td[style*="background-color: #FFDAB9"] {
+              background-color: #FFDAB9 !important;
+              color: black !important;
+            }
+            tfoot tr {
+              font-weight: bold;
+              background-color: #f0f0f0;
+            }
+            tfoot td[style*="background-color: #d1ffd1"] {
+              background-color: #d1ffd1 !important;
+            }
+            tfoot td[style*="background-color: #FFDAB9"] {
+              background-color: #FFDAB9 !important;
+              color: black !important;
+            }
+        </style>
+      </head>
+      <body>
+        ${table.outerHTML}
+      </body>
+    </html>
+  `);
 
-    const tableEl = document.getElementById("givings-table");
-    if (!tableEl) {
-        alert("No table found!");
-        return;
-    }
+    printWindow.document.close();
+    printWindow.focus();
 
-    // Convert HTML table to docx Table
-    const rows = Array.from(tableEl.querySelectorAll("tr")).map(tr => {
-        const cells = Array.from(tr.querySelectorAll("th, td")).map(td => {
-            return new TableCell({
-                width: { size: 2000, type: WidthType.DXA },
-                children: [new Paragraph({ children: [new TextRun(td.innerText)] })]
-            });
-        });
-        return new TableRow({ children: cells });
-    });
-
-    const doc = new Document({
-        sections: [{
-            properties: {},
-            children: [
-                new Paragraph({
-                    children: [new TextRun({ text: `Category: ${category}`, bold: true, size: 28 })]
-                }),
-                new Paragraph({
-                    children: [new TextRun({ text: `Month: ${month}`, bold: true, size: 24 })]
-                }),
-                new Paragraph({ text: "" }),
-                new Table({ rows })
-            ]
-        }]
-    });
-
-    Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${category}_${month}.docx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    });
+    // Add a small delay to let content render before printing
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);  // 250ms delay
 });
-
-
-
