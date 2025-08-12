@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     entriesColumnTag();
     expensesColumnTag();
     closeSummaryModal();
+    print();
 });
 
 
@@ -226,31 +227,6 @@ function ExpensesSubmit() {
         editingExpenseId = null;
         document.querySelector("#expenses-modal h3").textContent = "Add Expense";
     });
-}
-
-
-function downloadJPG() {
-    // JPG Download
-    document.getElementById("download-jpg").addEventListener("click", async () => {
-        const tableWrapper = document.querySelector(".table-wrapper");
-        if (!tableWrapper) return;
-        tableWrapper.scrollLeft = 0;
-        tableWrapper.style.overflow = "visible";
-
-        const canvas = await html2canvas(tableWrapper, {
-            scrollX: 0,
-            scrollY: -window.scrollY,
-            windowWidth: document.body.scrollWidth,
-            useCORS: true
-        });
-
-        const link = document.createElement("a");
-        const date = dateInput.value;
-        link.download = `Report_${date || 'today'}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg");
-        link.click();
-    });
-
 }
 
 
@@ -883,4 +859,77 @@ function addingEntry() {
         }
     });
 
+}
+
+
+function print() {
+    document.getElementById("print-btn").addEventListener("click", () => {
+        const givingsTable = document.getElementById("entries-table");
+        const expensesTable = document.getElementById("summary-table");
+
+        // Clone tables so we don't affect the originals
+        const givingsClone = givingsTable ? givingsTable.cloneNode(true) : null;
+        const expensesClone = expensesTable ? expensesTable.cloneNode(true) : null;
+
+        // Function to remove last column from a table
+        function removeLastColumn(table) {
+            table.querySelectorAll("tr").forEach(row => {
+                if (row.cells.length > 0) {
+                    row.deleteCell(row.cells.length - 1);
+                }
+            });
+        }
+
+        if (givingsClone) removeLastColumn(givingsClone);
+        if (expensesClone) removeLastColumn(expensesClone);
+
+        // Get the selected date (fallback to today if empty)
+        const dateValue = document.getElementById("entry-date")?.value || new Date().toISOString().split("T")[0];
+        const prettyDate = formatDatePretty(dateValue); // uses your existing function
+
+        const printWindow = window.open("", "", "width=900,height=700");
+
+        const styles = `
+            body { font-family: Arial, sans-serif; margin: 20px; color: #222; }
+            h1 { margin-bottom: 8px; }
+            h2 { margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+            table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+            th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; font-size: 0.95rem; }
+            thead th { background-color: #4A90E2; color: #fff; }
+            tbody tr:nth-child(even) { background-color: #fafafa; }
+            /* keep highlight / totals colors */
+            td[style*="background-color: #d1ffd1"] { background-color: #d1ffd1 !important; font-weight: bold; }
+            td[style*="background-color: #FFDAB9"] { background-color: #FFDAB9 !important; color: #000 !important; }
+            tfoot tr { font-weight: bold; background-color: #f0f0f0; }
+            /* page break between tables */
+            /* ensure background colors are preserved */
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        `;
+
+        // Build HTML: heading + givings table + page break + expenses table
+        printWindow.document.write(`
+            <html>
+              <head>
+                <title>Empire Church - ${prettyDate}</title>
+                <style>${styles}</style>
+              </head>
+              <body>
+                <h1>Empire Church</h1>
+                <h2>Entries for ${prettyDate}</h2>
+                ${givingsClone ? givingsClone.outerHTML : "<p>No entries available</p>"}
+
+                <h2>Expenses for ${prettyDate}</h2>
+                ${expensesClone ? expensesClone.outerHTML : "<p>No expenses available</p>"}
+              </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 300);
+    });
 }
