@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     expensesColumnTag();
     closeSummaryModal();
     print();
+    suggestion();
 });
 
 
@@ -931,5 +932,58 @@ function print() {
             printWindow.print();
             printWindow.close();
         }, 300);
+    });
+}
+
+
+function suggestion() {
+    const nameInput = document.getElementById("name");
+    const suggestionsList = document.getElementById("suggestions");
+
+    nameInput.addEventListener("input", async () => {
+        const query = nameInput.value.trim();
+        if (!query) {
+            suggestionsList.innerHTML = "";
+            suggestionsList.classList.add("hidden");
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/names?q=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error("Failed to fetch suggestions");
+            const names = await res.json();
+            renderSuggestions(names);
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    function renderSuggestions(names) {
+        suggestionsList.innerHTML = "";
+        if (!names.length) {
+            suggestionsList.classList.add("hidden");
+            return;
+        }
+
+        names.forEach(name => {
+            const li = document.createElement("li");
+            li.textContent = name;
+            li.addEventListener("click", () => {
+                nameInput.value = name;
+                suggestionsList.innerHTML = "";
+                suggestionsList.classList.add("hidden");
+            });
+            suggestionsList.appendChild(li);
+        });
+
+        suggestionsList.classList.remove("hidden");
+    }
+
+    // Hide when clicking outside
+    document.addEventListener("click", e => {
+        if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+            suggestionsList.innerHTML = "";
+            suggestionsList.classList.add("hidden");
+        }
     });
 }

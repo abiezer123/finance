@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import session
 from functools import wraps
 import uuid
+import re
 
 
 app = Flask(__name__)
@@ -14,6 +15,7 @@ mongo = PyMongo(app)
 # Make sure this runs without error
 print("MongoDB connection successful:", mongo.db)
 users_collection = mongo.db.users
+entries_collection = mongo.db.entries
 app.secret_key = "123"
 
 def login_required(f):
@@ -80,7 +82,7 @@ def index():
     if request.method == "POST":
         data = {
             "date": request.form["date"],
-            "name": request.form["name"],
+            "name": request.form["name"].strip(),
             "tithes": get_float(request.form.get("tithes")),
             "offering": get_float(request.form.get("offering")),
             "sfc": get_float(request.form.get("sfc")),
@@ -666,6 +668,19 @@ def category_givings(category):
         "dates": dates,
         "data": table_data
     })
+
+
+@app.route("/api/names")
+def suggest_names():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify([])
+
+    regex = re.compile(q, re.IGNORECASE)
+
+    names = entries_collection.distinct("name", {"name": regex})
+    return jsonify(names[:10])
+
 
 
 if __name__ == "__main__":

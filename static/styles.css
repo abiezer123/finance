@@ -711,3 +711,43 @@ tr.highlighted {
     background-color: #f9e79f !important;
     /* Light yellow highlight */
 }
+
+.suggestions-container {
+    position: relative;
+    width: 100%;
+    /* take same width as grid cell */
+}
+
+.suggestions-container input {
+    width: 100%;
+    /* match other inputs */
+}
+
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    /* cleaner */
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    border-radius: 0 0 6px 6px;
+    /* nice rounded bottom */
+}
+
+
+.suggestions-list li {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.suggestions-list li:hover {
+    background: #f0f0f0;
+}

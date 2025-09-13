@@ -240,7 +240,10 @@
         <form id="offering-form" method="POST" action="/">
             <input type="hidden" name="date" id="form-date">
 
-            <input type="text" name="name" id="name" placeholder="Name">
+            <div class="suggestions-container">
+                <input type="text" name="name" id="name" placeholder="Name" autocomplete="off">
+                <ul id="suggestions" class="suggestions-list hidden"></ul>
+            </div>
 
             <input type="number" step="any" name="tithes" id="tithes" placeholder="Tithes">
             <input type="number" step="any" name="offering" id="offering" placeholder="Offering">
@@ -256,7 +259,8 @@
 
             <input type="text" name="others_label" id="other-label" placeholder="Other Label">
 
-            <button type="submit" style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">
+            <button type="submit"
+                style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px; height: 60px;">
                 Add Entry
             </button>
         </form>
