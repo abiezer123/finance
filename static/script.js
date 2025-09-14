@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closeSummaryModal();
     print();
     suggestion();
+    picture();
 });
 
 
@@ -984,6 +985,33 @@ function suggestion() {
         if (!nameInput.contains(e.target) && !suggestionsList.contains(e.target)) {
             suggestionsList.innerHTML = "";
             suggestionsList.classList.add("hidden");
+        }
+    });
+}
+
+
+
+function picture() {
+    const pictureModal = document.getElementById("picture-modal");
+    const openPictureBtn = document.getElementById("open-picture-btn");
+    const closePictureModal = document.getElementById("close-picture-modal");
+
+    if (openPictureBtn) {
+        openPictureBtn.addEventListener("click", () => {
+            pictureModal.style.display = "flex"; // show modal
+        });
+    }
+
+    if (closePictureModal) {
+        closePictureModal.addEventListener("click", () => {
+            pictureModal.style.display = "none";
+        });
+    }
+
+    // close if click outside content
+    window.addEventListener("click", (e) => {
+        if (e.target === pictureModal) {
+            pictureModal.style.display = "none";
         }
     });
 }

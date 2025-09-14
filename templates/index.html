@@ -337,6 +337,22 @@
 
         <button id="print-btn">Print Table</button>
 
+
+        <!-- Picture Modal -->
+        <div id="picture-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-content" style="max-width: 600px; text-align:center;">
+                <span class="modal-close" id="close-picture-modal">&times;</span>
+                <img src="/static/sample.jpg" alt="Static Image"
+                    style="max-width:100%; height:auto; border-radius:8px;">
+            </div>
+        </div>
+
+
+        <button id="open-picture-btn"
+            style="background:#2980b9; color:white; padding:8px 14px; border-radius:6px; cursor:pointer;">
+            Show Picture
+        </button>
+
     </main>
 
     <script id="summary-data" type="application/json">
