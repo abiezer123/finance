@@ -401,7 +401,7 @@ function updateTable(data) {
 
         tr.innerHTML = `
             <td>${index + 1}</td>
-            <td>${row.name}</td>
+            <td style="color: #34495e; font-weight:bold;">${row.name}</td>
             <td>${row.tithes ? `₱${parseFloat(row.tithes).toFixed(2)}` : ""}</td>
             <td>${row.offering ? `₱${parseFloat(row.offering).toFixed(2)}` : ""}</td>
             <td>${row.sfc ? `₱${parseFloat(row.sfc).toFixed(2)}` : ""}</td>

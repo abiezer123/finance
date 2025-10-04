@@ -751,3 +751,10 @@ tr.highlighted {
 .suggestions-list li:hover {
     background: #f0f0f0;
 }
+
+#column-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    font-family: 'Poppins', sans-serif;
+    color: #222;
+}
