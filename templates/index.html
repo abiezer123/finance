@@ -7,6 +7,8 @@
     <title>Empire</title>
     <link rel="stylesheet" href="/static/styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <script src="/static/script.js"></script>
 
 </head>
@@ -76,40 +78,43 @@
             </svg>
         </button>
 
-        <br>
-        <h3 id="offering-cash">Cash on Hand (Offering Only): ₱0.00</h3>
+        <!-- Floating Gift Button -->
+        <button id="open-picture-btn">
+            <i class="fa-solid fa-gift"></i>
+        </button>
 
-        <br>
-        <!-- Cash Summary Modal -->
-        <div id="summary-modal" class="modal-overlay">
-            <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
-                <span class="modal-close" id="close-summary-modal">&times;</span>
-                <h3>All-Time Summary Details</h3>
-                <table style="width:100%; font-size: 0.9rem;">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Label</th>
-                            <th>From</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="summary-details-body">
-                        <!-- JS inserts detailed rows -->
-                    </tbody>
-                </table>
+        <div class="partition" id="partition-cash-on-hand">
+            <h3 id="offering-cash">Cash on Hand (Offering Only): ₱0.00</h3>
+
+            <br>
+            <!-- Cash Summary Modal -->
+            <div id="summary-modal" class="modal-overlay">
+                <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                    <span class="modal-close" id="close-summary-modal">&times;</span>
+                    <h3>All-Time Summary Details</h3>
+                    <table style="width:100%; font-size: 0.9rem;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Label</th>
+                                <th>From</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-details-body">
+                            <!-- JS inserts detailed rows -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div id="summary-btn-container">
-            <button onclick="loadAllTimeCashSummary()"
-                style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">
-                View Full Summary
-            </button>
-        </div>
+            <div id="summary-btn-container">
+                <button onclick="loadAllTimeCashSummary()"
+                    style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">
+                    View Full Summary
+                </button>
+            </div>
 
-        <hr>
-        <label for="entry-date">Select Date:</label>
-        <input type="date" id="entry-date" required value="{{ date }}">
+        </div>
 
         <!-- Calculator Modal -->
         <div id="calculator-modal" class="modal-overlay" style="display:none;">
@@ -142,82 +147,85 @@
             </div>
         </div>
 
-        <br><br>
+        <div class="partition" id="partition-entries-input">
 
-        <h3>Entries for <span id="selected-date"></span></h3>
+            <label for="entry-date">Select Date:</label>
+            <input type="date" id="entry-date" required value="{{ date }}">
+            <br><br>
+            <h3>Entries for <span id="selected-date"></span></h3>
 
-        <!-- Table for Entries -->
-        <div class="table-wrapper">
-            <table id="entries-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Tithes</th>
-                        <th>Offering</th>
-                        <th>SFC</th>
-                        <th>FP</th>
-                        <th>PH</th>
-                        <th>HOR</th>
-                        <th>SOC</th>
-                        <th>Sunday School</th>
-                        <th>For Visitor(bigas)</th>
-                        <th>AMD</th>
-                        <th>Others</th>
-                        <th>Total</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for entry in entries %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ entry.name }}</td>
-                        <td>{{ entry.tithes }}</td>
-                        <td>{{ entry.offering }}</td>
-                        <td>{{ entry.sfc }}</td>
-                        <td>{{ entry.fp }}</td>
-                        <td>{{ entry.ph }}</td>
-                        <td>{{ entry.hor }}</td>
-                        <td>{{ entry.soc }}</td>
-                        <td>{{ entry.sundayschool }}</td>
-                        <td>{{ entry.for_visitor }}</td>
-                        <td>{{ entry.amd }}</td>
-                        <td>{{ entry.others }} ({{ entry.others_label or 'N/A' }})</td>
-                        <td>
+            <!-- Table for Entries -->
+            <div class="table-wrapper">
+                <table id="entries-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Tithes</th>
+                            <th>Offering</th>
+                            <th>SFC</th>
+                            <th>FP</th>
+                            <th>PH</th>
+                            <th>HOR</th>
+                            <th>SOC</th>
+                            <th>Sunday School</th>
+                            <th>For Visitor(bigas)</th>
+                            <th>AMD</th>
+                            <th>Others</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ entry.name }}</td>
+                            <td>{{ entry.tithes }}</td>
+                            <td>{{ entry.offering }}</td>
+                            <td>{{ entry.sfc }}</td>
+                            <td>{{ entry.fp }}</td>
+                            <td>{{ entry.ph }}</td>
+                            <td>{{ entry.hor }}</td>
+                            <td>{{ entry.soc }}</td>
+                            <td>{{ entry.sundayschool }}</td>
+                            <td>{{ entry.for_visitor }}</td>
+                            <td>{{ entry.amd }}</td>
+                            <td>{{ entry.others }} ({{ entry.others_label or 'N/A' }})</td>
+                            <td>
 
 
-                            <button onclick="deleteEntry('{{ entry._id }}')"
-                                style="background-color:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                                <button onclick="deleteEntry('{{ entry._id }}')"
+                                    style="background-color:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
 
-                <tfoot>
-                    <tr>
-                        <td><strong>Totals:</strong></td>
-                        <td></td>
-                        <td>{{ original_totals.tithes }}</td>
-                        <td>{{ original_totals.offering }}</td>
-                        <td>{{ original_totals.sfc }}</td>
-                        <td>{{ original_totals.fp }}</td>
-                        <td>{{ original_totals.ph }}</td>
-                        <td>{{ original_totals.hor }}</td>
-                        <td>{{ original_totals.soc }}</td>
-                        <td>{{ original_totals.sundayschool }}</td>
-                        <td>{{ original_totals.for_visitor }}</td>
-                        <td>{{ original_totals.amd }}</td>
-                        <td>{{ original_totals.others }}</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
+                    <tfoot>
+                        <tr>
+                            <td><strong>Totals:</strong></td>
+                            <td></td>
+                            <td>{{ original_totals.tithes }}</td>
+                            <td>{{ original_totals.offering }}</td>
+                            <td>{{ original_totals.sfc }}</td>
+                            <td>{{ original_totals.fp }}</td>
+                            <td>{{ original_totals.ph }}</td>
+                            <td>{{ original_totals.hor }}</td>
+                            <td>{{ original_totals.soc }}</td>
+                            <td>{{ original_totals.sundayschool }}</td>
+                            <td>{{ original_totals.for_visitor }}</td>
+                            <td>{{ original_totals.amd }}</td>
+                            <td>{{ original_totals.others }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
 
-            </table>
+                </table>
 
-            <div id="info-box" style="
+                <div id="info-box" style="
             display: none;
             position: absolute;
             background: #fefefe;
@@ -230,128 +238,128 @@
             pointer-events: none;
             white-space: nowrap;
             "></div>
-        </div>
-        <br>
-        <h4 id="overall-income-total"></h4>
-
-        <hr>
-        <h3><span id="selected-date-copy"></span></h3>
-
-        <form id="offering-form" method="POST" action="/">
-            <input type="hidden" name="date" id="form-date">
-
-            <div class="suggestions-container">
-                <input type="text" name="name" id="name" placeholder="Name" autocomplete="off">
-                <ul id="suggestions" class="suggestions-list hidden"></ul>
             </div>
+            <br>
+            <h4 id="overall-income-total"></h4>
 
-            <input type="number" step="any" name="tithes" id="tithes" placeholder="Tithes">
-            <input type="number" step="any" name="offering" id="offering" placeholder="Offering">
-            <input type="number" step="any" name="sfc" id="sfc" placeholder="SFC">
-            <input type="number" step="any" name="fp" id="fp" placeholder="FP">
-            <input type="number" step="any" name="ph" id="ph" placeholder="PH">
-            <input type="number" step="any" name="hor" id="hor" placeholder="HOR">
-            <input type="number" step="any" name="soc" id="soc" placeholder="SOC">
-            <input type="number" step="any" name="sundayschool" id="sundayschool" placeholder="Sunday School">
-            <input type="number" step="any" name="for_visitor" id="for_visitor" placeholder="For Visitor(bigas)">
-            <input type="number" step="any" name="amd" id="amd" placeholder="AMD">
-            <input type="number" step="any" name="others" id="others" placeholder="Others Amount">
+        </div>
 
-            <input type="text" name="others_label" id="other-label" placeholder="Other Label">
+        <div class="partition" id="partition-entries-table">
+
+            <h3><span id="selected-date-copy"></span></h3>
+
+            <form id="offering-form" method="POST" action="/">
+                <input type="hidden" name="date" id="form-date">
+
+                <div class="suggestions-container">
+                    <input type="text" name="name" id="name" placeholder="Name" autocomplete="off">
+                    <ul id="suggestions" class="suggestions-list hidden"></ul>
+                </div>
+
+                <input type="number" step="any" name="tithes" id="tithes" placeholder="Tithes">
+                <input type="number" step="any" name="offering" id="offering" placeholder="Offering">
+                <input type="number" step="any" name="sfc" id="sfc" placeholder="SFC">
+                <input type="number" step="any" name="fp" id="fp" placeholder="FP">
+                <input type="number" step="any" name="ph" id="ph" placeholder="PH">
+                <input type="number" step="any" name="hor" id="hor" placeholder="HOR">
+                <input type="number" step="any" name="soc" id="soc" placeholder="SOC">
+                <input type="number" step="any" name="sundayschool" id="sundayschool" placeholder="Sunday School">
+                <input type="number" step="any" name="for_visitor" id="for_visitor" placeholder="For Visitor(bigas)">
+                <input type="number" step="any" name="amd" id="amd" placeholder="AMD">
+                <input type="number" step="any" name="others" id="others" placeholder="Others Amount">
+
+                <input type="text" name="others_label" id="other-label" placeholder="Other Label">
 
 
-            <button type="submit"
-                style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px; height: 60px;">
-                Add Entry
+                <button type="submit"
+                    style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px; height: 60px;">
+                    Add Entry
+                </button>
+            </form>
+
+        </div>
+        <div class="partition" id="partition-expesnses-table">
+
+            <button id="expenses-button"
+                style="background-color: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                Add Expense
             </button>
-        </form>
-        <button id="open-picture-btn"
-            style="background: rgb(170, 4, 4); color:white;  color:white; padding:8px 14px; border-radius:6px; height: 60px; width: 250px;">
-            Do Not Click!!!
-        </button>
 
-        <br>
-        <hr>
-        <br>
-        <br>
-        <button id="expenses-button"
-            style="background-color: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-            Add Expense
-        </button>
+            <!-- Table for Expenses -->
+            <div class="table-wrapper">
+                <table id="summary-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>Offering</th>
+                            <th>FP</th>
+                            <th>HOR</th>
+                            <th>SOC</th>
+                            <th>Sunday School</th>
+                            <th>For Visitor(bigas)</th>
+                            <th>AMD</th>
+                            <th>Others</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="summary-body">
+                        <!-- Dynamically filled rows -->
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- Table for Expenses -->
-        <div class="table-wrapper">
-            <table id="summary-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Type</th>
-                        <th>Offering</th>
-                        <th>FP</th>
-                        <th>HOR</th>
-                        <th>SOC</th>
-                        <th>Sunday School</th>
-                        <th>For Visitor(bigas)</th>
-                        <th>AMD</th>
-                        <th>Others</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="summary-body">
-                    <!-- Dynamically filled rows -->
-                </tbody>
-            </table>
+            <h4 id="overall-final-total"></h4>
+
+            <!-- Add Expenses Modal -->
+            <div id="expenses-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <span class="modal-close" id="close-expenses-modal">&times;</span>
+                    <h3>Add Expense</h3>
+                    <form id="expense-form">
+                        <label>Amount:</label>
+                        <input type="number" name="amount" step="any" class="expense-input" required><br>
+
+                        <label>Label:</label>
+                        <input type="text" name="label" class="expense-input" required><br>
+
+                        <label>Deduct from:</label>
+                        <select name="from" class="expense-input" required>
+                            <option value="offering">Offering</option>
+                            <option value="fp">FP</option>
+                            <option value="hor">HOR</option>
+                            <option value="soc">SOC</option>
+                            <option value="sundayschool">Sunday School</option>
+                            <option value="for_visitor">For Visitor(bigas)</option>
+                            <option value="amd">AMD</option>
+                            <option value="others">Others</option>
+                        </select><br><br>
+
+                        <button type="submit">Submit</button>
+                    </form>
+
+                </div>
+            </div>
+
+
+
         </div>
-        <br>
-        <h4 id="overall-final-total"></h4>
 
-        <!-- Add Expenses Modal -->
-        <div id="expenses-modal" class="modal-overlay">
-            <div class="modal-content">
-                <span class="modal-close" id="close-expenses-modal">&times;</span>
-                <h3>Add Expense</h3>
-                <form id="expense-form">
-                    <label>Amount:</label>
-                    <input type="number" name="amount" step="any" class="expense-input" required><br>
 
-                    <label>Label:</label>
-                    <input type="text" name="label" class="expense-input" required><br>
+        <div class="partition">
 
-                    <label>Deduct from:</label>
-                    <select name="from" class="expense-input" required>
-                        <option value="offering">Offering</option>
-                        <option value="fp">FP</option>
-                        <option value="hor">HOR</option>
-                        <option value="soc">SOC</option>
-                        <option value="sundayschool">Sunday School</option>
-                        <option value="for_visitor">For Visitor(bigas)</option>
-                        <option value="amd">AMD</option>
-                        <option value="others">Others</option>
-                    </select><br><br>
+            <button id="print-btn">Print Table</button>
 
-                    <button type="submit">Submit</button>
-                </form>
 
+            <!-- Picture Modal -->
+            <div id="picture-modal" class="modal-overlay" style="display:none;">
+                <div class="modal-content" style="max-width: 600px; text-align:center;">
+                    <span class="modal-close" id="close-picture-modal">&times;</span>
+                    <img src="/static/sample2.jpg" alt="Static Image"
+                        style="max-width:100%; height:auto; border-radius:8px;">
+                </div>
             </div>
         </div>
-
-
-
-        <hr>
-
-
-        <button id="print-btn">Print Table</button>
-
-
-        <!-- Picture Modal -->
-        <div id="picture-modal" class="modal-overlay" style="display:none;">
-            <div class="modal-content" style="max-width: 600px; text-align:center;">
-                <span class="modal-close" id="close-picture-modal">&times;</span>
-                <img src="/static/sample.jpg" alt="Static Image"
-                    style="max-width:100%; height:auto; border-radius:8px;">
-            </div>
-        </div>
-
 
 
     </main>

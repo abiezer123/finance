@@ -148,15 +148,18 @@ function calculator() {
 function calculatorIconWhenScrolled() {
     const scrollBtn = document.getElementById("scroll-calculator-btn");
     const mainCalcBtn = document.getElementById("open-calculator");
+    const openpic = document.getElementById("open-picture-btn");
     // Prevent errors if buttons are missing
-    if (!scrollBtn || !mainCalcBtn) return;
+    if (!scrollBtn || !mainCalcBtn || !openpic) return;
 
     // Show/hide floating button when scrolling
     window.addEventListener("scroll", function () {
         if (window.scrollY > 50) {
             scrollBtn.style.display = "flex";
+            openpic.style.display = "flex"
         } else {
             scrollBtn.style.display = "none";
+            openpic.style.display = "none"
         }
     });
 
@@ -990,17 +993,20 @@ function suggestion() {
 }
 
 
-
 function picture() {
     const pictureModal = document.getElementById("picture-modal");
     const openPictureBtn = document.getElementById("open-picture-btn");
     const closePictureModal = document.getElementById("close-picture-modal");
 
-    if (openPictureBtn) {
-        openPictureBtn.addEventListener("click", () => {
-            pictureModal.style.display = "flex"; // show modal
-        });
-    }
+    if (!pictureModal || !openPictureBtn) return;
+
+    openPictureBtn.addEventListener("click", () => {
+        if (pictureModal.style.display === "flex") {
+            pictureModal.style.display = "none";
+        } else {
+            pictureModal.style.display = "flex";
+        }
+    });
 
     if (closePictureModal) {
         closePictureModal.addEventListener("click", () => {
@@ -1008,7 +1014,6 @@ function picture() {
         });
     }
 
-    // close if click outside content
     window.addEventListener("click", (e) => {
         if (e.target === pictureModal) {
             pictureModal.style.display = "none";
