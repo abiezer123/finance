@@ -56,6 +56,9 @@ def login():
                 {'$set': {'session_token': session_token}}
             )
 
+            # Mark if admin
+            session['is_admin'] = username == 'admin'
+
             return redirect(url_for('index'))  # Redirect to protected page
         else:
             error = 'Invalid username or password'
@@ -149,7 +152,9 @@ def index():
         original_totals=original_totals,
         expense_totals=expense_totals,
         adjusted_totals=adjusted_totals,
-        offering_remaining=all_time_offering_remaining 
+        offering_remaining=all_time_offering_remaining,
+        is_admin=session.get('is_admin', False) 
+
     )
 
 
