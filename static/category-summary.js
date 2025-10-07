@@ -660,67 +660,169 @@ function ColumnTag() {
 }
 
 
-document.getElementById("print-table-btn").addEventListener("click", () => {
-    const table = document.getElementById("givings-table");
-    const printWindow = window.open('', '', 'width=800,height=600');
-    const categorySelect = document.getElementById("category-select"); // Assuming your dropdown has this ID
+
+document.getElementById("print-table-btn").addEventListener("click", async () => {
+    const startMonth = prompt("Enter start month (YYYY-MM) e.g. 2025-08");
+    if (!startMonth) return;
+    const endMonth = prompt("Enter end month (YYYY-MM) e.g. 2025-10");
+    if (!endMonth) return;
+
+    function getMonths(start, end) {
+        const startDate = new Date(start + "-01");
+        const endDate = new Date(end + "-01");
+        const months = [];
+        let current = startDate;
+        while (current <= endDate) {
+            const m = current.getMonth() + 1;
+            const monthStr = `${current.getFullYear()}-${m.toString().padStart(2, "0")}`;
+            months.push(monthStr);
+            current.setMonth(current.getMonth() + 1);
+        }
+        return months;
+    }
+
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    }
+
+    function formatMonth(dateStr) {
+        const d = new Date(dateStr + "-01");
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+
+    function calculateDeductions(value, category) {
+        if (!value || value === 0) return {};
+        let deductions = {};
+        switch (category.toLowerCase()) {
+            case "tithes":
+                deductions["Tithes 10%"] = value * 0.10;
+                deductions["Offering 30%"] = value * 0.30;
+                deductions["CRV 10%"] = value * 0.10;
+                deductions["Pastor 50%"] = value - (deductions["Tithes 10%"] + deductions["Offering 30%"] + deductions["CRV 10%"]);
+                break;
+            case "offering":
+                deductions["Church Tithes 10%"] = value * 0.10;
+                deductions["CRV 10%"] = value * 0.10;
+                deductions["Remaining"] = value - (deductions["Church Tithes 10%"] + deductions["CRV 10%"]);
+                break;
+            case "fp":
+            case "hor":
+                deductions["Tithes 10%"] = value * 0.10;
+                deductions["HQ 45%"] = value * 0.45;
+                deductions["Remaining"] = value - deductions["HQ 45%"];
+                break;
+            case "sundayschool":
+                deductions["Tithes 10%"] = value * 0.10;
+                deductions["Remaining"] = value - deductions["Tithes 10%"];
+                break;
+            default:
+                deductions["Total"] = value;
+        }
+        return deductions;
+    }
+
+    const months = getMonths(startMonth, endMonth);
+    const categorySelect = document.getElementById("category-select");
     const selectedCategory = categorySelect ? categorySelect.value : "";
 
-    printWindow.document.write(`
-    <html>
-      <head>
-        <title>Empire- ${selectedCategory.toUpperCase()} </title>
-        <style>
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              font-family: Arial, sans-serif;
-            }
-            th, td {
-              border: 1px solid #999;
-              padding: 6px 10px;
-              text-align: left;
-            }
-            thead th {
-              background-color: #4A90E2;
-              color: white;
-            }
-            tbody tr:nth-child(even) {
-              background-color: #fafafa;
-            }
-            tbody td[style*="background-color: #d1ffd1"] {
-              background-color: #d1ffd1 !important;
-              font-weight: bold;
-            }
-            tbody td[style*="background-color: #FFDAB9"] {
-              background-color: #FFDAB9 !important;
-              color: black !important;
-            }
-            tfoot tr {
-              font-weight: bold;
-              background-color: #f0f0f0;
-            }
-            tfoot td[style*="background-color: #d1ffd1"] {
-              background-color: #d1ffd1 !important;
-            }
-            tfoot td[style*="background-color: #FFDAB9"] {
-              background-color: #FFDAB9 !important;
-              color: black !important;
-            }
-        </style>
-      </head>
-      <body>
-        ${table.outerHTML}
-      </body>
-    </html>
-  `);
+    let htmlContent = `
+        <html>
+        <head>
+            <title>Empire - ${selectedCategory.toUpperCase()}</title>
+            <style>
+                table { width: 100%; border-collapse: collapse; font-family: Arial; margin-bottom: 30px; }
+                th, td { border: 1px solid #999; padding: 6px 10px; text-align: left; }
+                th { background-color: #4A90E2; color: white; }
+                tbody tr:nth-child(even) { background-color: #fafafa; }
+                tfoot tr { font-weight: bold; background-color: #f0f0f0; }
+                h2 { margin-bottom: 5px; }
+            </style>
+        </head>
+        <body>
+    `;
 
+    for (const month of months) {
+        try {
+            const res = await fetch(`/api/givings-per-person/${selectedCategory}?month=${month}`);
+            const data = await res.json();
+            if (!data.dates || !data.data) continue;
+
+            htmlContent += `<h2>Category: ${selectedCategory.toUpperCase()}</h2>`;
+            htmlContent += `<h3>Month: ${formatMonth(month)}</h3>`;
+
+            // Get dynamic deduction columns
+            const sampleDeductions = calculateDeductions(1, selectedCategory);
+            const deductionKeys = Object.keys(sampleDeductions);
+
+            // Table headers
+            htmlContent += `<table><thead><tr><th>Name</th>`;
+            data.dates.forEach(d => htmlContent += `<th>${formatDate(d)}</th>`);
+            htmlContent += `<th>Total</th>`;
+            deductionKeys.forEach(k => htmlContent += `<th>${k}</th>`);
+            htmlContent += `</tr></thead><tbody>`;
+
+            // Totals accumulators
+            const totalsPerDate = {};
+            data.dates.forEach(d => totalsPerDate[d] = 0);
+            let totalsRow = {};
+            deductionKeys.forEach(k => totalsRow[k] = 0);
+            let grandTotal = 0;
+
+            // Populate table rows
+            data.data.forEach(row => {
+                let rowTotal = 0;
+                let deductionsSum = {};
+                deductionKeys.forEach(k => deductionsSum[k] = 0);
+
+                htmlContent += `<tr><td>${row.name}</td>`;
+
+                data.dates.forEach(date => {
+                    const val = row[date] || 0;
+                    rowTotal += val;
+                    totalsPerDate[date] += val;
+
+                    const deductions = calculateDeductions(val, selectedCategory);
+                    deductionKeys.forEach(k => {
+                        deductionsSum[k] += deductions[k] || 0;
+                    });
+
+                    htmlContent += `<td>${val !== 0 ? val.toFixed(2) : ""}</td>`;
+                });
+
+                htmlContent += `<td>${rowTotal !== 0 ? rowTotal.toFixed(2) : ""}</td>`;
+                deductionKeys.forEach(k => {
+                    totalsRow[k] += deductionsSum[k];
+                    htmlContent += `<td>${deductionsSum[k] !== 0 ? deductionsSum[k].toFixed(2) : ""}</td>`;
+                });
+
+                htmlContent += `</tr>`;
+                grandTotal += rowTotal;
+            });
+
+            // Totals row
+            htmlContent += `<tfoot><tr><td>Total</td>`;
+            data.dates.forEach(d => htmlContent += `<td>${totalsPerDate[d] !== 0 ? totalsPerDate[d].toFixed(2) : ""}</td>`);
+            htmlContent += `<td>${grandTotal !== 0 ? grandTotal.toFixed(2) : ""}</td>`;
+            deductionKeys.forEach(k => htmlContent += `<td>${totalsRow[k] !== 0 ? totalsRow[k].toFixed(2) : ""}</td>`);
+            htmlContent += `</tr></tfoot>`;
+
+            htmlContent += `</table>`;
+        } catch (err) {
+            console.error("Error fetching month data:", month, err);
+        }
+    }
+
+    htmlContent += `</body></html>`;
+
+    const printWindow = window.open('', '', 'width=900,height=700');
+    printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.focus();
-
-    // Add a small delay to let content render before printing
     setTimeout(() => {
         printWindow.print();
         printWindow.close();
-    }, 250);  // 250ms delay
+    }, 300);
 });
