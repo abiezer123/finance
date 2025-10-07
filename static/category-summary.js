@@ -659,14 +659,27 @@ function ColumnTag() {
     });
 }
 
+const printModal = document.getElementById("print-modal");
+const openModalBtn = document.getElementById("print-table-btn");
+const cancelModalBtn = document.getElementById("modal-cancel-btn");
+const printBtn = document.getElementById("modal-print-btn");
 
+openModalBtn.addEventListener("click", () => {
+    printModal.style.display = "flex";
+});
 
-document.getElementById("print-table-btn").addEventListener("click", async () => {
-    const startMonth = prompt("Enter start month (YYYY-MM) e.g. 2025-08");
-    if (!startMonth) return;
-    const endMonth = prompt("Enter end month (YYYY-MM) e.g. 2025-10");
-    if (!endMonth) return;
+cancelModalBtn.addEventListener("click", () => {
+    printModal.style.display = "none";
+});
 
+printBtn.addEventListener("click", async () => {
+    const startMonth = document.getElementById("modal-start-month").value;
+    if (!startMonth) return alert("Please select a start month.");
+    const endMonth = document.getElementById("modal-end-month").value || startMonth;
+
+    printModal.style.display = "none"; // close modal
+
+    // Function to get months between start and end
     function getMonths(start, end) {
         const startDate = new Date(start + "-01");
         const endDate = new Date(end + "-01");
@@ -674,8 +687,7 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
         let current = startDate;
         while (current <= endDate) {
             const m = current.getMonth() + 1;
-            const monthStr = `${current.getFullYear()}-${m.toString().padStart(2, "0")}`;
-            months.push(monthStr);
+            months.push(`${current.getFullYear()}-${m.toString().padStart(2, "0")}`);
             current.setMonth(current.getMonth() + 1);
         }
         return months;
@@ -698,24 +710,23 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
         let deductions = {};
         switch (category.toLowerCase()) {
             case "tithes":
-                deductions["Tithes 10%"] = value * 0.10;
-                deductions["Offering 30%"] = value * 0.30;
-                deductions["CRV 10%"] = value * 0.10;
+                deductions["Tithes 10%"] = value * 0.1;
+                deductions["Offering 30%"] = value * 0.3;
+                deductions["CRV 10%"] = value * 0.1;
                 deductions["Pastor 50%"] = value - (deductions["Tithes 10%"] + deductions["Offering 30%"] + deductions["CRV 10%"]);
                 break;
             case "offering":
-                deductions["Church Tithes 10%"] = value * 0.10;
-                deductions["CRV 10%"] = value * 0.10;
+                deductions["Church Tithes 10%"] = value * 0.1;
+                deductions["CRV 10%"] = value * 0.1;
                 deductions["Remaining"] = value - (deductions["Church Tithes 10%"] + deductions["CRV 10%"]);
                 break;
-            case "fp":
-            case "hor":
-                deductions["Tithes 10%"] = value * 0.10;
+            case "fp": case "hor":
+                deductions["Tithes 10%"] = value * 0.1;
                 deductions["HQ 45%"] = value * 0.45;
                 deductions["Remaining"] = value - deductions["HQ 45%"];
                 break;
             case "sundayschool":
-                deductions["Tithes 10%"] = value * 0.10;
+                deductions["Tithes 10%"] = value * 0.1;
                 deductions["Remaining"] = value - deductions["Tithes 10%"];
                 break;
             default:
@@ -729,20 +740,16 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
     const selectedCategory = categorySelect ? categorySelect.value : "";
 
     let htmlContent = `
-        <html>
-        <head>
-            <title>Empire - ${selectedCategory.toUpperCase()}</title>
-            <style>
-                table { width: 100%; border-collapse: collapse; font-family: Arial; margin-bottom: 30px; }
-                th, td { border: 1px solid #999; padding: 6px 10px; text-align: left; }
-                th { background-color: #4A90E2; color: white; }
-                tbody tr:nth-child(even) { background-color: #fafafa; }
-                tfoot tr { font-weight: bold; background-color: #f0f0f0; }
-                h2 { margin-bottom: 5px; }
-            </style>
-        </head>
-        <body>
-    `;
+        <html><head>
+        <title>Empire - ${selectedCategory.toUpperCase()}</title>
+        <style>
+            table { width:100%; border-collapse:collapse; font-family:Arial; margin-bottom:30px; }
+            th, td { border:1px solid #999; padding:6px 10px; text-align:left; }
+            th { background-color:#4A90E2; color:white; }
+            tbody tr:nth-child(even) { background-color:#fafafa; }
+            tfoot tr { font-weight:bold; background-color:#f0f0f0; }
+            h2 { margin-bottom:5px; }
+        </style></head><body>`;
 
     for (const month of months) {
         try {
@@ -753,25 +760,21 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
             htmlContent += `<h2>Category: ${selectedCategory.toUpperCase()}</h2>`;
             htmlContent += `<h3>Month: ${formatMonth(month)}</h3>`;
 
-            // Get dynamic deduction columns
             const sampleDeductions = calculateDeductions(1, selectedCategory);
             const deductionKeys = Object.keys(sampleDeductions);
 
-            // Table headers
             htmlContent += `<table><thead><tr><th>Name</th>`;
             data.dates.forEach(d => htmlContent += `<th>${formatDate(d)}</th>`);
             htmlContent += `<th>Total</th>`;
             deductionKeys.forEach(k => htmlContent += `<th>${k}</th>`);
             htmlContent += `</tr></thead><tbody>`;
 
-            // Totals accumulators
             const totalsPerDate = {};
             data.dates.forEach(d => totalsPerDate[d] = 0);
             let totalsRow = {};
             deductionKeys.forEach(k => totalsRow[k] = 0);
             let grandTotal = 0;
 
-            // Populate table rows
             data.data.forEach(row => {
                 let rowTotal = 0;
                 let deductionsSum = {};
@@ -785,9 +788,7 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
                     totalsPerDate[date] += val;
 
                     const deductions = calculateDeductions(val, selectedCategory);
-                    deductionKeys.forEach(k => {
-                        deductionsSum[k] += deductions[k] || 0;
-                    });
+                    deductionKeys.forEach(k => deductionsSum[k] += deductions[k] || 0);
 
                     htmlContent += `<td>${val !== 0 ? val.toFixed(2) : ""}</td>`;
                 });
@@ -797,19 +798,15 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
                     totalsRow[k] += deductionsSum[k];
                     htmlContent += `<td>${deductionsSum[k] !== 0 ? deductionsSum[k].toFixed(2) : ""}</td>`;
                 });
-
                 htmlContent += `</tr>`;
                 grandTotal += rowTotal;
             });
 
-            // Totals row
             htmlContent += `<tfoot><tr><td>Total</td>`;
             data.dates.forEach(d => htmlContent += `<td>${totalsPerDate[d] !== 0 ? totalsPerDate[d].toFixed(2) : ""}</td>`);
             htmlContent += `<td>${grandTotal !== 0 ? grandTotal.toFixed(2) : ""}</td>`;
             deductionKeys.forEach(k => htmlContent += `<td>${totalsRow[k] !== 0 ? totalsRow[k].toFixed(2) : ""}</td>`);
-            htmlContent += `</tr></tfoot>`;
-
-            htmlContent += `</table>`;
+            htmlContent += `</tr></tfoot></table>`;
         } catch (err) {
             console.error("Error fetching month data:", month, err);
         }
@@ -817,12 +814,9 @@ document.getElementById("print-table-btn").addEventListener("click", async () =>
 
     htmlContent += `</body></html>`;
 
-    const printWindow = window.open('', '', 'width=900,height=700');
+    const printWindow = window.open('', 'width=900,height=700');
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 300);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
 });
