@@ -289,7 +289,6 @@ async function fetchCategoryData(category) {
         }
 
         const expenses = entry.total_expenses !== undefined ? `₱${parseFloat(entry.total_expenses).toFixed(2)}` : "-";
-        const remaining = entry.remaining !== undefined ? `₱${parseFloat(entry.remaining).toFixed(2)}` : "-";
         const isDeletable = entry.source === "manual";
 
         const tr = document.createElement("tr");
@@ -299,7 +298,6 @@ async function fetchCategoryData(category) {
             <td class="${amountClass}"><strong>${displayAmount}</strong></td>
             <td>${entry.label || "-"}</td>
             <td>${expenses}</td>
-            <td>${remaining}</td>
             <td>
                 ${isDeletable ? `
                     <button class="edit-btn" style="background-color: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer;" data-id="${getEntryId(entry)}" data-label="${entry.label}" data-amount="${entry.amount}">Edit</button>
@@ -717,16 +715,13 @@ printBtn.addEventListener("click", async () => {
             case "offering":
                 deductions["Church Tithes 10%"] = value * 0.1;
                 deductions["CRV 10%"] = value * 0.1;
-                deductions["Remaining"] = value - (deductions["Church Tithes 10%"] + deductions["CRV 10%"]);
                 break;
             case "fp": case "hor":
                 deductions["Tithes 10%"] = value * 0.1;
                 deductions["HQ 45%"] = value * 0.45;
-                deductions["Remaining"] = value - deductions["HQ 45%"];
                 break;
             case "sundayschool":
                 deductions["Tithes 10%"] = value * 0.1;
-                deductions["Remaining"] = value - deductions["Tithes 10%"];
                 break;
             default:
                 deductions["Total"] = value;
