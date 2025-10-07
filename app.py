@@ -35,6 +35,8 @@ def login_required(f):
     return decorated_function
 
 
+from flask import redirect, url_for, session, request, render_template
+import uuid
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -59,13 +61,15 @@ def login():
             # Mark if admin
             session['is_admin'] = username == 'admin'
 
-            return redirect(url_for('index'))  # Redirect to protected page
+            # Redirect based on admin status
+            if session['is_admin']:
+                return redirect(url_for('category_summary'))  # admin page
+            else:
+                return redirect(url_for('index'))  # normal user page
         else:
             error = 'Invalid username or password'
     
     return render_template('login.html', error=error)
-
-
 
 def get_float(value):
     try:
