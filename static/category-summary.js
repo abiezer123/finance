@@ -679,7 +679,6 @@ printBtn.addEventListener("click", async () => {
 
     printModal.style.display = "none"; // close modal
 
-    // Function to get months between start and end
     function getMonths(start, end) {
         const startDate = new Date(start + "-01");
         const endDate = new Date(end + "-01");
@@ -748,6 +747,8 @@ printBtn.addEventListener("click", async () => {
             th { background-color:#4A90E2; color:white; }
             tbody tr:nth-child(even) { background-color:#fafafa; }
             tfoot tr { font-weight:bold; background-color:#f0f0f0; }
+            td.total { background-color:#d1ffd1; }
+            td.deduction { background-color:#FFDAB9; }
             h2 { margin-bottom:5px; }
         </style></head><body>`;
 
@@ -790,23 +791,25 @@ printBtn.addEventListener("click", async () => {
                     const deductions = calculateDeductions(val, selectedCategory);
                     deductionKeys.forEach(k => deductionsSum[k] += deductions[k] || 0);
 
-                    htmlContent += `<td>${val !== 0 ? val.toFixed(2) : ""}</td>`;
+                    htmlContent += `<td>${val !== 0 ? "₱" + val.toFixed(2) : ""}</td>`;
                 });
 
-                htmlContent += `<td>${rowTotal !== 0 ? rowTotal.toFixed(2) : ""}</td>`;
+                htmlContent += `<td class="total">${rowTotal !== 0 ? "₱" + rowTotal.toFixed(2) : ""}</td>`;
                 deductionKeys.forEach(k => {
                     totalsRow[k] += deductionsSum[k];
-                    htmlContent += `<td>${deductionsSum[k] !== 0 ? deductionsSum[k].toFixed(2) : ""}</td>`;
+                    htmlContent += `<td class="deduction">${deductionsSum[k] !== 0 ? "₱" + deductionsSum[k].toFixed(2) : ""}</td>`;
                 });
+
                 htmlContent += `</tr>`;
                 grandTotal += rowTotal;
             });
 
             htmlContent += `<tfoot><tr><td>Total</td>`;
-            data.dates.forEach(d => htmlContent += `<td>${totalsPerDate[d] !== 0 ? totalsPerDate[d].toFixed(2) : ""}</td>`);
-            htmlContent += `<td>${grandTotal !== 0 ? grandTotal.toFixed(2) : ""}</td>`;
-            deductionKeys.forEach(k => htmlContent += `<td>${totalsRow[k] !== 0 ? totalsRow[k].toFixed(2) : ""}</td>`);
+            data.dates.forEach(d => htmlContent += `<td>${totalsPerDate[d] !== 0 ? "₱" + totalsPerDate[d].toFixed(2) : ""}</td>`);
+            htmlContent += `<td class="total">${grandTotal !== 0 ? "₱" + grandTotal.toFixed(2) : ""}</td>`;
+            deductionKeys.forEach(k => htmlContent += `<td class="deduction">${totalsRow[k] !== 0 ? "₱" + totalsRow[k].toFixed(2) : ""}</td>`);
             htmlContent += `</tr></tfoot></table>`;
+
         } catch (err) {
             console.error("Error fetching month data:", month, err);
         }
