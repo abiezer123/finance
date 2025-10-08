@@ -24,7 +24,30 @@ document.addEventListener("DOMContentLoaded", () => {
     closeSummaryModal();
     print();
     suggestion();
-    picture();
+
+    const openPictureBtn = document.getElementById('open-picture-btn');
+    const body = document.body;
+
+    // Check localStorage on page load
+    if (localStorage.getItem('theme') === 'hello-kitty') {
+        body.classList.add('hello-kitty');
+    }
+
+    // Toggle theme on button click
+    openPictureBtn.addEventListener('click', () => {
+        body.classList.toggle('hello-kitty');
+
+        // Save theme state in localStorage
+        if (body.classList.contains('hello-kitty')) {
+            localStorage.setItem('theme', 'hello-kitty');
+            launchConfetti();
+        } else {
+            localStorage.setItem('theme', 'default'); // or removeItem('theme')
+        }
+    });
+
+
+
 });
 
 
@@ -992,31 +1015,37 @@ function suggestion() {
     });
 }
 
+function launchConfetti() {
+    const duration = 2500; // 2.5 seconds
+    const animationEnd = Date.now() + duration;
+    const defaults = {
+        startVelocity: 30,
+        spread: 360,
+        ticks: 60,
+        zIndex: 9999
+    };
 
-function picture() {
-    const pictureModal = document.getElementById("picture-modal");
-    const openPictureBtn = document.getElementById("open-picture-btn");
-    const closePictureModal = document.getElementById("close-picture-modal");
-
-    if (!pictureModal || !openPictureBtn) return;
-
-    openPictureBtn.addEventListener("click", () => {
-        if (pictureModal.style.display === "flex") {
-            pictureModal.style.display = "none";
-        } else {
-            pictureModal.style.display = "flex";
-        }
-    });
-
-    if (closePictureModal) {
-        closePictureModal.addEventListener("click", () => {
-            pictureModal.style.display = "none";
-        });
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
     }
 
-    window.addEventListener("click", (e) => {
-        if (e.target === pictureModal) {
-            pictureModal.style.display = "none";
+    const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
         }
-    });
+
+        const particleCount = 50 * (timeLeft / duration);
+
+        // since particles fall down, start a bit higher than random
+        confetti(Object.assign({}, defaults, {
+            particleCount,
+            origin: {
+                x: randomInRange(0.1, 0.9),
+                y: Math.random() - 0.2
+            },
+            colors: ['#f00000ff', '#ffb6c1', '#e75f8cff', '#3ff739ff', '#2f1be2ff']
+        }));
+    }, 200);
 }

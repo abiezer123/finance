@@ -1,3 +1,47 @@
+:root {
+    /* Default Theme */
+    --primary-bg: linear-gradient(250deg, #3498db, white);
+    --primary-color: #333;
+    --accent-color: #f1c40f;
+    --button-bg: #3498db;
+    --button-hover-bg: #2980b9;
+    --navbar-bg: rgba(36, 53, 88, 0.979);
+    --navbar-text: white;
+    --navbar-brand-color: #f1c40f;
+    --nav-toggle-color: #f1c40f;
+    --modal-bg: #fff;
+    --table-bg: #fff;
+    --table-header-bg: #3498db;
+    --table-header-color: #fff;
+    --table-footer-bg: #f4f6f8;
+    --picture-btn-bg: rgb(170, 4, 4);
+    --picture-btn-hover: #e74c3c;
+}
+
+body.hello-kitty {
+    --primary-bg: linear-gradient(120deg, #ffb6c1, #ffe6f0);
+    --primary-color: #d6336c;
+    --accent-color: #ff69b4;
+    --button-bg: #ff69b4;
+    --button-hover-bg: #ff85c1;
+    --navbar-bg: #ff66a3;
+    --navbar-text: white;
+    --navbar-brand-color: #ffffff;
+    --nav-toggle-color: #ffffff;
+    --modal-bg: #fff0f5;
+    --table-bg: #fff0f5;
+    --table-header-bg: #ff69b4;
+    --table-header-color: #fff;
+    --table-footer-bg: #ffe6f0;
+    --picture-btn-bg: #ff69b4;
+    --picture-btn-hover: #ff85c1;
+
+    background:
+        linear-gradient(rgba(255, 182, 193, 0.6), rgba(255, 230, 240, 0.6)),
+        url("/static/hellokitty.jpg") center/cover no-repeat fixed;
+
+}
+
 /* Reset */
 * {
     box-sizing: border-box;
@@ -7,12 +51,13 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(250deg, #3498db, white);
-    color: #333;
+    background: var(--primary-bg);
+    color: var(--primary-color);
     padding: 20px;
     overflow-x: hidden;
     max-width: 100vw;
     position: relative;
+    transition: background 0.8s ease, color 0.5s ease;
 }
 
 html {
@@ -23,21 +68,21 @@ html {
 
 /* Navbar */
 .navbar {
-    background-color: rgba(36, 53, 88, 0.979);
+    background-color: var(--navbar-bg);
     backdrop-filter: blur(12px);
-    color: white;
+    color: var(--navbar-text);
     padding: 1rem 2rem;
     border-radius: 20px;
     margin: 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* keep this for brand left, links right */
     flex-wrap: wrap;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    transition: background 0.45s, color 0.45s;
 }
 
 .nav-left {
@@ -51,34 +96,69 @@ html {
     margin-left: auto;
 }
 
-.navbar-brand {
+/* brand color now driven by a variable */
+.navbar-brand,
+.navbar-brand-modern {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #f1c40f;
+    color: var(--navbar-brand-color);
+    transition: color 0.35s ease;
 }
 
+/* modern brand variant */
+.navbar-brand-modern {
+    font-size: 1.7rem;
+    letter-spacing: 2px;
+    text-shadow: 0 1px 2px #0002;
+}
+
+/* Nav toggle (the checkbox itself — keep hidden but present in DOM) */
 .nav-toggle {
-    display: none;
+    /* visually hide but keep accessible */
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    left: -9999px;
 }
 
+/* Label that becomes the hamburger button */
+/* Make sure the burger icon is visible */
 .nav-toggle-label {
-    display: none;
+    display: flex;
+    /* always show by default */
     flex-direction: column;
     cursor: pointer;
     margin-left: auto;
     margin-right: 1rem;
     height: 36px;
     justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    align-items: center;
 }
 
+/* Burger bars follow the theme color */
 .nav-toggle-label span {
     width: 28px;
     height: 4px;
-    background-color: #f1c40f;
-    margin: 3px 0;
+    background-color: var(--nav-toggle-color);
     border-radius: 2px;
     display: block;
-    transition: 0.3s;
+    transition: transform 0.32s ease, opacity 0.25s ease, background-color 0.32s ease;
+}
+
+/* Animate burger into X */
+.nav-toggle:checked+.nav-toggle-label span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.nav-toggle:checked+.nav-toggle-label span:nth-child(2) {
+    opacity: 0;
+}
+
+.nav-toggle:checked+.nav-toggle-label span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
 }
 
 .navbar-links {
@@ -87,16 +167,14 @@ html {
     gap: 1.5rem;
     list-style: none;
     margin-left: auto;
-    /* Pushes links (and calculator) to the right */
     margin-right: 0;
-    /* Remove right margin if present */
     justify-content: flex-end;
-    /* Align all items to the right */
     flex: 1;
+    transition: max-height 0.35s ease, opacity 0.35s ease;
 }
 
 .navbar-links li a {
-    color: #ecf0f1;
+    color: var(--navbar-text);
     text-decoration: none;
     font-weight: 500;
     padding: 1.4rem 0.8rem;
@@ -105,17 +183,17 @@ html {
 }
 
 .navbar-links li a.active {
-    background-color: #f1c40f;
+    background-color: var(--accent-color);
     color: #1f2a40;
 }
 
 .navbar-links li a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Modern Navbar Styles */
+/* Modern Navbar Styles (kept, with variable colors applied where suitable) */
 .navbar-modern {
-    background: #222;
+    background: var(--navbar-bg);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
     padding: 0;
     position: sticky;
@@ -134,14 +212,6 @@ html {
     position: relative;
 }
 
-.navbar-brand-modern {
-    font-size: 1.7rem;
-    font-weight: bold;
-    color: #27ae60;
-    letter-spacing: 2px;
-    text-shadow: 0 1px 2px #0002;
-}
-
 .navbar-links-modern {
     display: flex;
     gap: 2rem;
@@ -156,7 +226,7 @@ html {
 }
 
 .navbar-links-modern a {
-    color: #fff;
+    color: var(--navbar-text);
     text-decoration: none;
     font-weight: 500;
     padding: 8px 18px;
@@ -166,7 +236,7 @@ html {
 
 .navbar-links-modern a:hover,
 .navbar-links-modern a.active {
-    background: #27ae60;
+    background: var(--accent-color);
     color: #fff;
 }
 
@@ -184,11 +254,6 @@ html {
     margin-left: auto;
 }
 
-.nav-toggle,
-.nav-toggle-label-modern {
-    display: none;
-}
-
 .navbar-calc-btn {
     margin-left: 0.5rem;
     margin-right: 0.5rem;
@@ -200,73 +265,12 @@ html {
 }
 
 .navbar-calc-btn:hover {
-    background: #f1c40f;
+    background: var(--accent-color);
     color: #222;
 }
 
 #open-calculator {
     margin-right: 20px;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-    .navbar {
-        flex-direction: row;
-        align-items: center;
-        padding: 1rem;
-        position: relative;
-    }
-
-    .navbar-calc-btn {
-        margin: 0 0.5rem 0 0.5rem;
-        position: relative;
-        z-index: 1002;
-    }
-
-    .navbar-links {
-        flex-direction: column;
-        width: 100%;
-        gap: 0;
-        margin-top: 1rem;
-        display: none;
-        background: rgba(31, 42, 64, 0.97);
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        position: absolute;
-        left: 0;
-        top: 60px;
-        z-index: 1001;
-    }
-
-    .navbar-links li {
-        width: 100%;
-        display: flex;
-        justify-content: flex-start;
-    }
-
-    .navbar-links li a,
-    .navbar-links li button {
-        width: 100%;
-        text-align: left;
-        margin: 0;
-        border-radius: 0;
-    }
-
-    .nav-toggle:checked+.nav-toggle-label+.navbar-links {
-        display: flex;
-    }
-
-    .nav-toggle-label {
-        display: flex;
-    }
-
-    /* Calculator button spacing in mobile */
-    #open-calculator {
-        margin: 10px 20px 10px 10px;
-
-    }
-
-
 }
 
 
@@ -294,6 +298,8 @@ form {
     margin-bottom: 2rem;
 }
 
+
+
 input,
 button,
 select {
@@ -301,24 +307,27 @@ select {
     font-size: 1rem;
     border: 1.5px solid #ccc;
     border-radius: 6px;
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
 }
 
 input:focus,
 select:focus {
-    border-color: #3498db;
+    border-color: var(--accent-color);
     outline: none;
 }
 
 button {
-    background-color: #3498db;
+    background-color: var(--button-bg);
     color: white;
     border: none;
-    transition: background 0.3s ease;
     cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+    border-radius: 6px;
 }
 
 button:hover {
-    background-color: #2980b9;
+    background-color: var(--button-hover-bg);
+    transform: scale(1.05);
 }
 
 
@@ -326,29 +335,29 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
-    background-color: white;
+    background-color: var(--table-bg);
     border-radius: 10px;
     overflow: hidden;
+    transition: background 0.5s;
 }
 
 thead {
-    background-color: #3498db;
-    color: white;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-color);
 }
 
 th,
 td {
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     border: 1px solid #e5e7eb;
-    /* Soft modern gray for subtle grid lines */
-    padding: 8px;
     vertical-align: middle;
 }
 
 tfoot {
-    background-color: #f4f6f8;
+    background-color: var(--table-footer-bg);
     font-weight: bold;
+    transition: background 0.5s;
 }
 
 hr {
@@ -419,6 +428,7 @@ hr {
     border-radius: 4px;
 }
 
+/* Modals */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -431,13 +441,14 @@ hr {
 }
 
 .modal-content {
-    background: #fff;
+    background: var(--modal-bg);
     padding: 20px;
     width: 90%;
     max-width: 800px;
     margin: 20px auto;
     border-radius: 10px;
     position: relative;
+    transition: background 0.5s;
 }
 
 .modal-close {
@@ -552,8 +563,7 @@ td.actions {
     min-width: 110px;
 }
 
-/* Calculator Modal Styles */
-/* Transparent Calculator Modal */
+/* Calculator Modal Overlay */
 #calculator-modal.modal-overlay {
     position: fixed;
     top: 0;
@@ -565,13 +575,18 @@ td.actions {
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    /* Remove blur and transparency */
     backdrop-filter: none;
+    transition: background 0.4s ease;
 }
 
+/* Change overlay tint in Hello Kitty theme */
+body.hello-kitty #calculator-modal.modal-overlay {
+    background: rgba(255, 182, 193, 0.35);
+}
+
+/* Calculator Container */
 .calculator-modal-content {
     background: #222;
-    /* Solid color */
     border-radius: 18px;
     padding: 28px 16px 18px 16px;
     min-width: 320px;
@@ -581,17 +596,43 @@ td.actions {
     flex-direction: column;
     align-items: center;
     max-width: 95vw;
+    transition: background 0.5s ease, box-shadow 0.5s ease, border 0.5s ease;
 }
 
+/* Hello Kitty mode modal */
+body.hello-kitty .calculator-modal-content {
+    background: #fff0f5;
+    box-shadow: 0 8px 32px rgba(255, 182, 193, 0.5);
+    border: 3px solid #ff85c1;
+}
+
+/* Hello Kitty wink image */
+body.hello-kitty .calculator-modal-content::before {
+    content: "";
+    position: absolute;
+    top: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+
+    height: 120px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    /* Animated Hello Kitty Background */
+    background: url("/static/hellokitty.gif") center/cover no-repeat;
+}
+
+/* Close Button */
 #close-calculator-modal {
     position: absolute;
     top: -32px;
-    /* Move above the modal */
     right: 0;
     font-size: 2rem;
     color: #aaa;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color 0.2s, background 0.2s;
     z-index: 2;
     background: #222;
     border-radius: 50%;
@@ -603,11 +644,25 @@ td.actions {
     border: 2px solid #fff1;
 }
 
+/* Default hover */
 #close-calculator-modal:hover {
     color: #e74c3c;
     background: #fff2;
 }
 
+/* Kitty version */
+body.hello-kitty #close-calculator-modal {
+    background: #ff69b4;
+    color: white;
+    border-color: #ffb6c1;
+}
+
+body.hello-kitty #close-calculator-modal:hover {
+    background: #ff85c1;
+    color: white;
+}
+
+/* Calculator Body */
 .calculator-modern {
     display: flex;
     flex-direction: column;
@@ -616,6 +671,7 @@ td.actions {
     max-width: 90vw;
 }
 
+/* Display */
 .calc-display {
     width: 100%;
     height: 48px;
@@ -629,43 +685,17 @@ td.actions {
     padding: 0 12px;
     box-shadow: 0 2px 8px #0002 inset;
     outline: none;
+    transition: background 0.4s, color 0.4s;
 }
 
-.calc-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 56px);
-    grid-gap: 10px;
-    width: 100%;
+/* Kitty display */
+body.hello-kitty .calc-display {
+    background: #fff6fa;
+    color: #d6336c;
+    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.5) inset;
 }
 
-.calc-btn {
-    background: rgba(51, 51, 51, 0.95);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.25rem;
-    padding: 16px 0;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    box-shadow: 0 1px 2px #0001;
-}
-
-.calc-btn:hover {
-    background: #27ae60;
-    color: #fff;
-}
-
-.equal-btn {
-    grid-row: span 2;
-    background: #27ae60;
-    color: #fff;
-    font-weight: bold;
-}
-
-.zero-btn {
-    grid-column: span 2;
-}
-
+/* History */
 .calc-history {
     width: 100%;
     min-height: 22px;
@@ -676,29 +706,7 @@ td.actions {
     padding-right: 8px;
     letter-spacing: 1px;
     overflow-x: auto;
-}
-
-@media (max-width: 600px) {
-    .calculator-modal-content {
-        min-width: 98vw;
-        padding: 12px 2vw 12px 2vw;
-    }
-
-    .calculator-modern {
-        width: 98vw;
-        max-width: 98vw;
-    }
-
-    .calc-buttons {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
-    .calc-btn.flash-green {
-        background-color: #2ecc71 !important;
-        color: white !important;
-        transition: background-color 0.2s ease;
-    }
-
+    transition: color 0.4s;
 }
 
 #calc-history {
@@ -707,9 +715,84 @@ td.actions {
     font-size: 16px;
 }
 
+/* Kitty history color */
+body.hello-kitty .calc-history {
+    color: #d87aa2;
+}
+
+/* Buttons grid */
+.calc-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 56px);
+    grid-gap: 10px;
+    width: 100%;
+}
+
+/* Default button style */
+.calc-btn {
+    background: rgba(51, 51, 51, 0.95);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.25rem;
+    padding: 16px 0;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 1px 2px #0001;
+}
+
+/* Default hover */
+.calc-btn:hover {
+    background: #27ae60;
+    color: #fff;
+}
+
+/* Kitty button colors */
+body.hello-kitty .calc-btn {
+    background: #ffb6c1;
+    color: #d6336c;
+    box-shadow: 0 1px 4px rgba(255, 105, 180, 0.3);
+}
+
+body.hello-kitty .calc-btn:hover {
+    background: #ff85c1;
+    color: #fff;
+}
+
+/* Special Buttons */
+.equal-btn {
+    grid-row: span 2;
+    background: #27ae60;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Kitty equal */
+body.hello-kitty .equal-btn {
+    background: #ff69b4;
+    color: white;
+}
+
+body.hello-kitty .equal-btn:hover {
+    background: #ff85c1;
+}
+
+/* Zero Button */
+.zero-btn {
+    grid-column: span 2;
+}
+
+/* Transitions */
+#calculator-modal,
+.calculator-modal-content,
+.calc-display,
+.calc-btn,
+.equal-btn {
+    transition: background 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+}
+
 tr.highlighted {
     background-color: #f9e79f !important;
-    /* Light yellow highlight */
 }
 
 .suggestions-container {
@@ -763,14 +846,13 @@ tr.highlighted {
     background: white;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     margin: 20px 5px;
 }
 
 #open-picture-btn {
     position: fixed;
     top: 80px;
-    /* Below the calculator button */
     right: 28px;
     background: rgb(170, 4, 4);
     color: white;
@@ -781,15 +863,100 @@ tr.highlighted {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
     cursor: pointer;
     z-index: 9999;
-    font-size: 1.2rem;
+    transition: all 0.3s ease;
 }
 
 #open-picture-btn:hover {
     background: #e74c3c;
     transform: scale(1.1);
-    transition: 0.25s ease;
+}
+
+
+
+/* Responsive */
+@media (max-width: 900px) {
+    .navbar {
+        flex-direction: row;
+        align-items: center;
+        padding: 1rem;
+        position: relative;
+    }
+
+    .navbar-calc-btn {
+        margin: 0 0.5rem 0 0.5rem;
+        position: relative;
+        z-index: 1002;
+    }
+
+    .navbar-links {
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+        margin-top: 1rem;
+        display: none;
+        background: rgba(31, 42, 64, 0.97);
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        position: absolute;
+        left: 0;
+        top: 60px;
+        z-index: 1001;
+    }
+
+    .navbar-links li {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .navbar-links li a,
+    .navbar-links li button {
+        width: 100%;
+        text-align: left;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .nav-toggle:checked+.nav-toggle-label+.navbar-links {
+        display: flex;
+    }
+
+    .nav-toggle-label {
+        display: flex;
+    }
+
+    /* Calculator button spacing in mobile */
+    #open-calculator {
+        margin: 10px 20px 10px 10px;
+
+    }
+
+
+}
+
+@media (max-width: 600px) {
+    .calculator-modal-content {
+        min-width: 100vw;
+        padding: 12px 2vw 12px 2vw;
+    }
+
+    .calculator-modern {
+        width: 98vw;
+        max-width: 98vw;
+    }
+
+    .calc-buttons {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .calc-btn.flash-green {
+        background-color: #2ecc71 !important;
+        color: white !important;
+        transition: background-color 0.2s ease;
+    }
+
+
 }
