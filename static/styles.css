@@ -122,10 +122,10 @@ html {
     left: -9999px;
 }
 
-/* Label that becomes the hamburger button */
+
 /* Make sure the burger icon is visible */
 .nav-toggle-label {
-    display: flex;
+    display: none;
     /* always show by default */
     flex-direction: column;
     cursor: pointer;
@@ -959,4 +959,42 @@ tr.highlighted {
     }
 
 
+}
+
+
+/* 🎀 Show ribbon only in Hello Kitty theme */
+body.hello-kitty .navbar {
+    position: relative;
+    background-color: rgba(255, 182, 193, 0.9);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(6px);
+    z-index: 10;
+}
+
+/* 🎀 Ribbon styling (Hello Kitty only) */
+body.hello-kitty .navbar-ribbon {
+    position: absolute;
+    top: -32px;
+    /* adjust vertical placement */
+    left: -32px;
+    /* move outside navbar a bit */
+    width: 75px;
+    /* adjust ribbon size */
+    transform: rotate(-20deg);
+    transform-origin: center;
+    z-index: 999;
+    pointer-events: none;
+    display: block;
+    /* visible in Hello Kitty mode */
+}
+
+/* 🩶 Hide the ribbon when NOT in Hello Kitty theme */
+body:not(.hello-kitty) .navbar-ribbon {
+    display: none;
+}
+
+/* ✨ Optional soft hover or swinging animation */
+body.hello-kitty .navbar-ribbon:hover {
+    transform: rotate(-60deg) scale(1.05);
+    transition: all 0.3s ease-in-out;
 }
