@@ -971,7 +971,7 @@ body.hello-kitty .navbar {
     z-index: 10;
 }
 
-/* 🎀 Ribbon styling (Hello Kitty only) */
+
 body.hello-kitty .navbar-ribbon {
     position: absolute;
     top: -32px;

@@ -9,7 +9,7 @@ import re
 
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://abiezer:abiatharfam@cluster0.ghn0wj8.mongodb.net/church_finance?retryWrites=true&w=majority&appName=Cluster0"
+app.config["MONGO_URI"] = "mongodb+srv://abiezervilla12_db_user:abiathar@cluster0.klixyhd.mongodb.net/church_finance?retryWrites=true&w=majority&appName=Cluster0"
 
 mongo = PyMongo(app)
 # Make sure this runs without error
