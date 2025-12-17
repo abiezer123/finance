@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Category Fund Summary</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="icon" href="/static/UPC.png">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script defer src="/static/category-summary.js"></script>
 
@@ -40,8 +41,8 @@
             </label>
             <ul class="navbar-links">
                 <li><a href="/">Entries</a></li>
-                <li><a href="/category-summary">Fund Categories</a></li>
-                <li><a href="/logout" style="color: #e74c3c;">Logout</a></li>
+                <li><a href="/category-summary" class="active">Fund Categories</a></li>
+                <li><a href="/logout" style="color: #e74c3c;"><b>Logout</b></a></li>
             </ul>
         </div>
     </nav>
@@ -155,11 +156,11 @@
             z-index:9999;
         "></div>
 
-            <br><br><br><br>
+            <!-- <br><br><br><br>
             <hr>
-            <br><br><br><br>
+            <br><br><br><br> -->
 
-            <h3>Church Fund Category Summary</h3>
+            <!-- <h3>Church Fund Category Summary</h3>
 
             <h4 id="category-title">Tithes</h4>
             <h5 id="cash-on-hand" style="margin-bottom: 16px; font-size: 1.5rem;">Cash on Hand: ₱0.00</h5>
@@ -180,10 +181,10 @@
                     </thead>
 
                     <tbody id="category-table-body">
-                        <!-- inserts rows here -->
+                        
                     </tbody>
                 </table>
-            </div>
+            </div> -->
 
             <div class="modal-overlay" id="expense-modal">
                 <div class="modal-content">

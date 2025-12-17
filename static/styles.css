@@ -2,7 +2,7 @@
     /* Default Theme */
     --primary-bg: linear-gradient(250deg, #3498db, white);
     --primary-color: #333;
-    --accent-color: #f1c40f;
+    --accent-color: #e0a80b;
     --button-bg: #3498db;
     --button-hover-bg: #2980b9;
     --navbar-bg: rgba(36, 53, 88, 0.979);
@@ -171,6 +171,7 @@ html {
     justify-content: flex-end;
     flex: 1;
     transition: max-height 0.35s ease, opacity 0.35s ease;
+    text-align: center;
 }
 
 .navbar-links li a {
@@ -180,11 +181,16 @@ html {
     padding: 1.4rem 0.8rem;
     border-radius: 8px;
     transition: 0.3s;
+    text-align: center;
 }
 
 .navbar-links li a.active {
     background-color: var(--accent-color);
-    color: #1f2a40;
+    color: rgb(247, 246, 246);
+    border-radius: 50px;
+    padding: 10px;
+    padding-right: 15px;
+    padding-left: 15px;
 }
 
 .navbar-links li a:hover {
@@ -897,13 +903,14 @@ tr.highlighted {
         gap: 0;
         margin-top: 1rem;
         display: none;
-        background: rgba(31, 42, 64, 0.97);
+        background: rgba(49, 61, 85, 0.97);
         border-radius: 12px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         position: absolute;
         left: 0;
-        top: 60px;
+        top: 70px;
         z-index: 1001;
+        text-align: center;
     }
 
     .navbar-links li {
@@ -915,9 +922,11 @@ tr.highlighted {
     .navbar-links li a,
     .navbar-links li button {
         width: 100%;
-        text-align: left;
         margin: 0;
         border-radius: 0;
+        text-align: center;
+        margin-right: 10px;
+        margin-left: 10px;
     }
 
     .nav-toggle:checked+.nav-toggle-label+.navbar-links {

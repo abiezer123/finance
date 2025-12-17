@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Empire</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="icon" href="/static/UPC.png">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
@@ -42,9 +43,9 @@
                 <span></span>
             </label>
             <ul class="navbar-links">
-                <li><a href="/">Entries</a></li>
+                <li><a href="/" class="active">Entries</a></li>
                 <li><a href="/category-summary">Fund Categories</a></li>
-                <li><a href="/logout" style="color: #e74c3c;">Logout</a></li>
+                <li><a href="/logout" style="color: #e74c3c;"><b>Logout</b></a></li>
             </ul>
         </div>
     </nav>
@@ -86,7 +87,7 @@
         </button>
 
         <div class="partition" id="partition-cash-on-hand">
-            <h3 id="offering-cash">Cash on Hand (Offering Only): ₱0.00</h3>
+            <!-- <h3 id="offering-cash">Cash on Hand (Offering Only): ₱0.00</h3> -->
 
             <br>
             <!-- Cash Summary Modal -->
