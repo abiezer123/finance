@@ -78,6 +78,48 @@ def get_float(value):
         return 0.0
 
 
+def log_activity(action, entry_data, entry_id=None, username=None):
+    """Log an activity (entry add/update/delete) to the activity_logs collection."""
+    try:
+        who = username or session.get("username", "unknown")
+        amount_approx = float(entry_data.get("tithes", 0)) + float(entry_data.get("offering", 0)) + float(entry_data.get("others", 0))
+        log_entry = {
+            "date": entry_data.get("date"),
+            "action": action,
+            "timestamp": datetime.now(),
+            "entry_id": str(entry_id) if entry_id else None,
+            "name": entry_data.get("name"),
+            "category": "multiple",
+            "amount": amount_approx,
+            "details": {k: v for k, v in entry_data.items() if k != "_id"},
+            "who": who,
+            "type": "entry"
+        }
+        mongo.db.activity_logs.insert_one(log_entry)
+    except Exception as e:
+        print(f"Error logging activity: {e}")
+
+
+def log_activity_expense(action, expense_data, expense_id=None, username=None):
+    """Log an expense activity (add/update/delete) to the activity_logs collection."""
+    try:
+        who = username or session.get("username", "unknown")
+        log_entry = {
+            "date": expense_data.get("date"),
+            "action": action,
+            "timestamp": datetime.now(),
+            "entry_id": str(expense_id) if expense_id else None,
+            "name": expense_data.get("label") or expense_data.get("from") or "-",
+            "category": expense_data.get("from") or expense_data.get("category") or "expense",
+            "amount": float(expense_data.get("amount", 0)),
+            "details": {k: v for k, v in expense_data.items() if k != "_id"},
+            "who": who,
+            "type": "expense"
+        }
+        mongo.db.activity_logs.insert_one(log_entry)
+    except Exception as e:
+        print(f"Error logging expense activity: {e}")
+
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
@@ -105,6 +147,7 @@ def index():
         }
 
         mongo.db.entries.insert_one(data)
+        log_activity("add", data, data.get("_id"))
         return redirect(url_for("index", date=data["date"]))
 
     entries = list(mongo.db.entries.find({"date": selected_date}))
@@ -165,7 +208,10 @@ def index():
 
 @app.route("/delete/<id>")
 def delete(id):
-    mongo.db.entries.delete_one({"_id": ObjectId(id)})
+    entry = mongo.db.entries.find_one({"_id": ObjectId(id)})
+    if entry:
+        log_activity("delete", entry, id)
+        mongo.db.entries.delete_one({"_id": ObjectId(id)})
     return redirect(request.referrer)
 
 # Edit Entry
@@ -188,6 +234,10 @@ def edit_entry(id):
         "date": request.form.get("date", "")
     }
     mongo.db.entries.update_one({"_id": ObjectId(id)}, {"$set": updated})
+    # Fetch full updated entry for logging
+    updated_entry = mongo.db.entries.find_one({"_id": ObjectId(id)})
+    if updated_entry:
+        log_activity("update", updated_entry, id)
     return redirect(request.referrer)
 
 # Edit Expense
@@ -552,6 +602,7 @@ def add_manual_category_expense():
     }
 
     mongo.db.expenses.insert_one(expense)
+    log_activity_expense("add", expense, expense.get("_id"))
     return jsonify({"message": "Manual category expense added"}), 201
 
 
@@ -585,13 +636,18 @@ def add_manual_expense():
     }
 
     mongo.db.expenses.insert_one(expense)
-
+    log_activity_expense("add", expense, expense.get("_id"))
     return jsonify({"success": True, "message": "Manual expense recorded."}), 201
 
 
 # Delete manual expense for category summary
 @app.route("/category-summary/delete-expense/<expense_id>", methods=["DELETE"])
 def delete_manual_expense_summary(expense_id):
+    doc = mongo.db.expenses.find_one({"_id": ObjectId(expense_id), "source": "manual"})
+    if doc:
+        expense_data = {k: v for k, v in doc.items() if k != "_id"}
+        expense_data["_id"] = str(doc["_id"])
+        log_activity_expense("delete", expense_data, expense_id)
     result = mongo.db.expenses.delete_one({"_id": ObjectId(expense_id), "source": "manual"})
     if result.deleted_count == 1:
         return jsonify({"success": True})
@@ -626,6 +682,8 @@ def edit_manual_expense(expense_id):
         "amount": amount,
         "label": label,
     }
+    if data.get("date"):
+        update_fields["date"] = data.get("date")
     if category:
         print(f"Updating category to {category}")
         update_fields["category"] = category
@@ -636,6 +694,9 @@ def edit_manual_expense(expense_id):
     )
 
     if result.modified_count == 1:
+        updated = mongo.db.expenses.find_one({"_id": obj_id})
+        if updated:
+            log_activity_expense("update", {k: v for k, v in updated.items() if k != "_id"}, expense_id)
         return jsonify({"success": True})
     return jsonify({"success": False, "error": "No changes made"}), 404
 
@@ -690,6 +751,160 @@ def suggest_names():
     names = entries_collection.distinct("name", {"name": regex})
     return jsonify(names[:10])
 
+
+@app.route("/api/dates-with-input")
+def dates_with_input():
+    """Return all distinct dates that have entries or expenses with actual values, sorted newest first."""
+    try:
+        # Find dates in entries where at least one field is > 0
+        entry_query = {
+            "$or": [
+                {"tithes": {"$gt": 0}},
+                {"offering": {"$gt": 0}},
+                {"sfc": {"$gt": 0}},
+                {"fp": {"$gt": 0}},
+                {"ph": {"$gt": 0}},
+                {"hor": {"$gt": 0}},
+                {"soc": {"$gt": 0}},
+                {"others": {"$gt": 0}},
+                {"sundayschool": {"$gt": 0}},
+                {"for_visitor": {"$gt": 0}},
+                {"amd": {"$gt": 0}}
+            ]
+        }
+        entry_dates = list(entries_collection.distinct("date", entry_query))
+
+        # Find dates in expenses where amount > 0
+        expense_query = {"amount": {"$gt": 0}}
+        expense_dates = list(mongo.db.expenses.distinct("date", expense_query))
+
+        # Combine and sort
+        all_dates = sorted(set(entry_dates + expense_dates), reverse=True)
+        return jsonify(all_dates)
+    except Exception as e:
+        print(f"Error fetching dates: {e}")
+        return jsonify([])
+
+
+@app.route("/api/activity-logs")
+def get_activity_logs():
+    """Return activity logs sorted by timestamp descending"""
+    try:
+        logs = list(mongo.db.activity_logs.find().sort("timestamp", -1).limit(100)) # Limit to last 100 actions
+        
+        # Convert ObjectIds to strings and clean up for JSON
+        results = []
+        for log in logs:
+            log["_id"] = str(log["_id"])
+            if log.get("timestamp"):
+                log["timestamp"] = log["timestamp"].isoformat()
+            results.append(log)
+            
+        return jsonify(results)
+    except Exception as e:
+        print(f"Error fetching logs: {e}")
+        return jsonify([])
+
+@app.route("/api/available-years")
+def available_years():
+    """Return all unique years from the database entries"""
+    try:
+        # Get all distinct dates
+        dates = entries_collection.distinct("date")
+        
+        # Extract years from dates (format: YYYY-MM-DD)
+        years = set()
+        for date in dates:
+            if date and isinstance(date, str) and len(date) >= 4:
+                year = date[:4]
+                if year.isdigit():
+                    years.add(year)
+        
+        # Sort years in descending order (newest first)
+        sorted_years = sorted(list(years), reverse=True)
+        return jsonify(sorted_years)
+    except Exception as e:
+        print(f"Error fetching available years: {e}")
+        # Return current year as fallback
+        return jsonify([str(datetime.now().year)])
+
+
+@app.route("/api/search-givings")
+def search_givings():
+    name_query = request.args.get("name", "").strip()
+    year = request.args.get("year", "")
+    month = request.args.get("month", "")
+    specific_date = request.args.get("date", "")
+
+    if not name_query and not specific_date and not (year and month):
+        # Prevent empty heavy queries, require at least a name or specific date context
+        # But user said "search a name".
+        if not name_query:
+            return jsonify([])
+
+    query = {}
+    
+    if name_query:
+        query["name"] = {"$regex": name_query, "$options": "i"}
+    
+    if specific_date:
+        query["date"] = specific_date
+    elif year and month:
+        query["date"] = {"$regex": f"^{year}-{month}"}
+    elif year:
+        query["date"] = {"$regex": f"^{year}"}
+    elif month:
+        query["date"] = {"$regex": f"-{month}-"}
+
+    entries = list(mongo.db.entries.find(query))
+    
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor", "amd"]
+    results = []
+    
+    for entry in entries:
+        date = entry.get("date", "")
+        person_name = entry.get("name", "")
+        
+        for cat in categories:
+            val = entry.get(cat, 0)
+            try:
+                amount = float(val)
+            except:
+                amount = 0.0
+                
+            if amount > 0:
+                results.append({
+                    "date": date,
+                    "name": person_name,
+                    "category": cat,
+                    "amount": amount
+                })
+                
+    # Sort by date descending
+    results.sort(key=lambda x: x["date"], reverse=True)
+    
+    return jsonify(results)
+
+def get_available_years():
+    years = set()
+    
+    # Get years from entries
+    dates = mongo.db.entries.distinct("date")
+    for d in dates:
+        if d and len(d) >= 4:
+            years.add(d[:4])
+            
+    # Get years from expenses
+    exp_dates = mongo.db.expenses.distinct("date")
+    for d in exp_dates:
+        if d and len(d) >= 4:
+            years.add(d[:4])
+            
+    # Add current year if not present
+    current_year = str(datetime.now().year)
+    years.add(current_year)
+            
+    return jsonify(sorted(list(years), reverse=True))
 
 
 if __name__ == "__main__":

@@ -897,6 +897,14 @@ tr.highlighted {
         z-index: 1002;
     }
 
+    /* Keep floating buttons fixed and visible on mobile (they use navbar-calc-btn too) */
+    #scroll-calculator-btn,
+    #scroll-search-btn,
+    #scroll-log-btn {
+        position: fixed !important;
+        z-index: 9999 !important;
+    }
+
     .navbar-links {
         flex-direction: column;
         width: 100%;
