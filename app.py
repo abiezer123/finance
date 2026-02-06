@@ -9,8 +9,9 @@ import re
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
+# load .env ONLY if not on Render
+if os.getenv("RENDER") is None:
+    load_dotenv()
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
