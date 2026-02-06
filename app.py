@@ -7,10 +7,10 @@ from functools import wraps
 import uuid
 import re
 import os
-from dotenv import load_dotenv
 
 # load .env ONLY if not on Render
 if os.getenv("RENDER") is None:
+    from dotenv import load_dotenv
     load_dotenv()
 
 app = Flask(__name__)
