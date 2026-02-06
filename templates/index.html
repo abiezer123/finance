@@ -94,7 +94,18 @@
             <div id="summary-modal" class="modal-overlay">
                 <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
                     <span class="modal-close" id="close-summary-modal">&times;</span>
-                    <h3>All-Time Summary Details</h3>
+                    <h3>Summary</h3>
+                    <div style="margin-bottom: 16px;">
+                        <label for="summary-month-select">Month:</label>
+                        <select id="summary-month-select" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; margin-left: 8px;">
+                            <option value="">Loading...</option>
+                        </select>
+                        <label for="summary-year-select" style="margin-left: 16px;">Year:</label>
+                        <select id="summary-year-select" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; margin-left: 8px;">
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <div id="summary-totals" style="margin-bottom: 12px; font-weight: bold;"></div>
                     <table style="width:100%; font-size: 0.9rem;">
                         <thead>
                             <tr>
@@ -111,9 +122,9 @@
                 </div>
             </div>
             <div id="summary-btn-container">
-                <button onclick="loadAllTimeCashSummary()"
+                <button onclick="loadMonthlySummary()"
                     style="background:#27ae60; color:white; padding:8px 14px; border-radius:6px;">
-                    View Full Summary
+                    View Summary
                 </button>
             </div>
 

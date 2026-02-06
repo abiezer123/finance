@@ -740,44 +740,124 @@ function deleteExpense(id) {
         });
 }
 
-async function loadAllTimeCashSummary() {
+async function loadMonthlySummary() {
     const modal = document.getElementById("summary-modal");
     const tbody = document.getElementById("summary-details-body");
-    const cashDisplay = document.getElementById("offering-cash");
+    const monthSelect = document.getElementById("summary-month-select");
+    const yearSelect = document.getElementById("summary-year-select");
+    const totalsDiv = document.getElementById("summary-totals");
 
     modal.style.display = "block";
     tbody.innerHTML = "";
-    let totalGivings = 0;
-    let totalExpenses = 0;
-    let totalCash = 0;
+    totalsDiv.innerHTML = "";
 
     try {
-        const res = await fetch("/api/alltime-summary");
-        const raw = await res.json();
-        const data = Array.isArray(raw) ? raw : (raw.summary || []);
+        const res = await fetch("/api/monthly-summary");
+        const data = await res.json();
+        const { summary, available_months, selected_month } = data;
 
-        data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Populate month/year selectors
+        monthSelect.innerHTML = "";
+        yearSelect.innerHTML = "";
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const years = [...new Set(available_months.map(m => m.split("-")[0]))].sort((a, b) => b - a);
 
-        data.forEach(record => {
-            const datePretty = formatDatePretty(record.date);
-            const givings = record.givings || {};
-            const expenses = Array.isArray(record.expenses) ? record.expenses : [];
-            const totalGiving = record.total_givings || 0;
-            const totalExpense = record.total_expenses || 0;
-            const cashOnHand = totalGiving - totalExpense;
+        months.forEach((m, i) => {
+            const opt = document.createElement("option");
+            opt.value = String(i + 1).padStart(2, "0");
+            opt.textContent = m;
+            monthSelect.appendChild(opt);
+        });
 
-            totalGivings += totalGiving;
-            totalExpenses += totalExpense;
-            totalCash += cashOnHand;
+        years.forEach(y => {
+            const opt = document.createElement("option");
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+        });
 
-            let html = `<tr><td colspan="4"><b>Date: ${datePretty}</b></td></tr>`;
-            html += `<tr><td colspan="4"><u>Expenses:</u></td></tr>`;
+        // Set to selected month
+        if (selected_month) {
+            const [year, month] = selected_month.split("-");
+            monthSelect.value = month;
+            yearSelect.value = year;
+        }
 
-            if (expenses.length === 0) {
-                html += `<tr><td colspan="4"><i>No expenses recorded</i></td></tr>`;
-            } else {
-                expenses.forEach(exp => {
-                    html += `
+        // Add change listeners
+        monthSelect.onchange = yearSelect.onchange = async () => {
+            const y = yearSelect.value;
+            const m = monthSelect.value;
+            const selected = `${y}-${m}`;
+            const res2 = await fetch(`/api/monthly-summary?month=${selected}`);
+            const data2 = await res2.json();
+            renderMonthlySummary(data2.summary);
+        };
+
+        // Initial render
+        renderMonthlySummary(summary);
+    } catch (e) {
+        console.error("Error loading monthly summary", e);
+        tbody.innerHTML = "<tr><td colspan='4'>Failed to load summary.</td></tr>";
+    }
+}
+
+function renderMonthlySummary(summary) {
+    const tbody = document.getElementById("summary-details-body");
+    const totalsDiv = document.getElementById("summary-totals");
+
+    tbody.innerHTML = "";
+    if (!summary) {
+        tbody.innerHTML = "<tr><td colspan='4'>No data for selected month.</td></tr>";
+        totalsDiv.innerHTML = "";
+        return;
+    }
+
+    const { month, givings, expenses, total_givings, total_expenses, weekly } = summary;
+    const cashOnHand = total_givings - total_expenses;
+
+    // Clear totals at top
+    totalsDiv.innerHTML = "";
+
+    // Format date helper
+    function formatDateRange(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    }
+
+    // Render weekly breakdown
+    if (weekly && weekly.length > 0) {
+        
+        weekly.forEach(week => {
+            const startDateFormatted = formatDateRange(week.week_start);
+            const endDateFormatted = formatDateRange(week.week_end);
+            const dateRangeText = week.week_start === week.week_end ? startDateFormatted : `${startDateFormatted} - ${endDateFormatted}`;
+            
+            tbody.innerHTML += `
+                <tr style="background:#f8f9fa;">
+                    <td colspan="4"><b>${dateRangeText}</b></td>
+                </tr>
+            `;
+            
+            // Show category breakdown for this week
+            Object.entries(week.givings).forEach(([category, amount]) => {
+                if (parseFloat(amount) > 0) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td></td>
+                            <td colspan="2">${category}</td>
+                            <td>₱${parseFloat(amount).toLocaleString()}</td>
+                        </tr>`;
+                }
+            });
+            
+            // Show expenses for this week
+            const weekExpenses = expenses.filter(exp => 
+                exp.date >= week.week_start && exp.date <= week.week_end
+            );
+            if (weekExpenses.length > 0) {
+                tbody.innerHTML += `<tr><td colspan="4"><b>Week Expenses</b></td></tr>`;
+                weekExpenses.forEach(exp => {
+                    tbody.innerHTML += `
                         <tr>
                             <td></td>
                             <td>${exp.label}</td>
@@ -786,42 +866,27 @@ async function loadAllTimeCashSummary() {
                         </tr>`;
                 });
             }
-
-            html += `<tr><td colspan="4"><u>Givings:</u></td></tr>`;
-            Object.entries(givings).forEach(([key, value]) => {
-                html += `<tr>
-                    <td></td>
-                    <td colspan="2">${key}</td>
-                    <td>₱${parseFloat(value).toLocaleString()}</td>
-                </tr>`;
-            });
-
-            html += `
-                <tr style="background:#f6f6f6;">
+            
+            // Week totals at the bottom
+            tbody.innerHTML += `
+                <tr style="background:#e9ecef;">
                     <td colspan="3"><b>Total Givings</b></td>
-                    <td><b>₱${totalGiving.toLocaleString()}</b></td>
+                    <td><b>₱${week.total_givings.toLocaleString()}</b></td>
                 </tr>
-                <tr style="background:#f6f6f6;">
+                <tr style="background:#e9ecef;">
                     <td colspan="3"><b>Total Expenses</b></td>
-                    <td><b>₱${totalExpense.toLocaleString()}</b></td>
+                    <td><b>₱${week.total_expenses.toLocaleString()}</b></td>
                 </tr>
-                <tr style="background:#e8f8f5;">
+                <tr style="background:#d4edda;">
                     <td colspan="3"><b>Cash on Hand</b></td>
-                    <td><b>₱${cashOnHand.toLocaleString()}</b></td>
+                    <td><b>₱${week.cash_on_hand.toLocaleString()}</b></td>
                 </tr>
                 <tr><td colspan="4"><hr></td></tr>
             `;
-
-            tbody.innerHTML += html;
         });
-
-
-
-    } catch (err) {
-        console.error("Summary fetch error:", err);
-        tbody.innerHTML = `<tr><td colspan="4">Error loading summary.</td></tr>`;
     }
 
+   
 }
 
 function closeSummaryModal() {

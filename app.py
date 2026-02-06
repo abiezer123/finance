@@ -6,17 +6,21 @@ from flask import session
 from functools import wraps
 import uuid
 import re
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://abiezervilla12_db_user:abiathar@cluster0.klixyhd.mongodb.net/church_finance?retryWrites=true&w=majority&appName=Cluster0"
+app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+app.secret_key = os.getenv("SECRET_KEY")
 
 mongo = PyMongo(app)
 # Make sure this runs without error
 print("MongoDB connection successful:", mongo.db)
 users_collection = mongo.db.users
 entries_collection = mongo.db.entries
-app.secret_key = "123"
 
 def login_required(f):
     @wraps(f)
@@ -378,6 +382,111 @@ def alltime_summary():
         })
 
     return jsonify({"summary": summary})
+
+
+@app.route("/api/monthly-summary")
+def monthly_summary():
+    categories = ["tithes", "offering", "sfc", "fp", "ph", "hor", "soc", "others", "sundayschool", "for_visitor", "amd"]
+    # Get all unique YYYY-MM from entries and expenses
+    pipeline = [
+        {"$project": {"month": {"$substr": ["$date", 0, 7]}}},
+        {"$group": {"_id": "$month"}},
+        {"$sort": {"_id": -1}}
+    ]
+    months_entries = [doc["_id"] for doc in mongo.db.entries.aggregate(pipeline)]
+    months_expenses = [doc["_id"] for doc in mongo.db.expenses.aggregate(pipeline)]
+    all_months = sorted(set(months_entries + months_expenses), reverse=True)
+
+    # Default to latest month if not specified
+    requested_month = request.args.get("month")
+    if not requested_month and all_months:
+        requested_month = all_months[0]
+
+    if not requested_month:
+        return jsonify({"summary": [], "available_months": [], "selected_month": None})
+
+    # Aggregate entries for the selected month
+    month_start = f"{requested_month}-01"
+    month_end = f"{requested_month}-31"
+
+    entry_docs = list(mongo.db.entries.find({"date": {"$gte": month_start, "$lte": month_end}}))
+    expense_docs = list(mongo.db.expenses.find({"date": {"$gte": month_start, "$lte": month_end}}))
+
+    # Givings per category
+    givings = {cat: sum(float(e.get(cat, 0)) for e in entry_docs) for cat in categories}
+    total_givings = sum(givings.values())
+
+    # Expenses per record
+    expenses = []
+    total_expenses = 0
+    for exp in expense_docs:
+        label = exp.get("label", "")
+        amount = float(exp.get("amount", 0))
+        from_cat = exp.get("from", "")
+        total_expenses += amount
+
+        expenses.append({
+            "label": label,
+            "amount": amount,
+            "from": from_cat
+        })
+
+    summary = {
+        "month": requested_month,
+        "givings": givings,
+        "expenses": expenses,
+        "total_givings": total_givings,
+        "total_expenses": total_expenses
+    }
+
+    # Add weekly breakdown
+    weeks = []
+    # Get all dates in the month
+    month_dates = list(mongo.db.entries.find({"date": {"$gte": month_start, "$lte": month_end}}, {"date": 1}))
+    month_dates.extend(mongo.db.expenses.find({"date": {"$gte": month_start, "$lte": month_end}}, {"date": 1}))
+    unique_dates = sorted(set(doc["date"] for doc in month_dates))
+    
+    # Group dates by week (starting Sunday)
+    current_week = []
+    for date_str in unique_dates:
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        weekday = date_obj.weekday()  # Monday=0, Sunday=6
+        if weekday == 6 or not current_week:  # Sunday or first week
+            if current_week:
+                weeks.append(current_week)
+            current_week = [date_str]
+        else:
+            current_week.append(date_str)
+    if current_week:
+        weeks.append(current_week)
+    
+    # Calculate totals for each week
+    weekly_summary = []
+    for i, week_dates in enumerate(weeks, 1):
+        week_start = week_dates[0]
+        week_end = week_dates[-1]
+        
+        week_entries = list(mongo.db.entries.find({"date": {"$in": week_dates}}))
+        week_expenses = list(mongo.db.expenses.find({"date": {"$in": week_dates}}))
+        
+        week_givings = {cat: sum(float(e.get(cat, 0)) for e in week_entries) for cat in categories}
+        week_total_givings = sum(week_givings.values())
+        week_total_expenses = sum(float(exp.get("amount", 0)) for exp in week_expenses)
+        week_cash = week_total_givings - week_total_expenses
+        
+        weekly_summary.append({
+            "week": i,
+            "week_start": week_start,
+            "week_end": week_end,
+            "givings": week_givings,
+            "total_givings": week_total_givings,
+            "total_expenses": week_total_expenses,
+            "cash_on_hand": week_cash
+        })
+    
+    summary["weekly"] = weekly_summary
+
+    return jsonify({"summary": summary, "available_months": all_months, "selected_month": requested_month})
 
 
 # category summary page
