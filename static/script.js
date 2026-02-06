@@ -886,13 +886,53 @@ function renderMonthlySummary(summary) {
         });
     }
 
-   
+    // Render overall givings summary for the month
+    tbody.innerHTML += `<tr><td colspan="4"><b>Monthly Givings Summary</b></td></tr>`;
+    Object.keys(givings).forEach(category => {
+        tbody.innerHTML += `
+            <tr>
+                <td></td>
+                <td colspan="2">${category}</td>
+                <td>₱${parseFloat(givings[category]).toLocaleString()}</td>
+            </tr>`;
+    });
+
+    // Render overall expenses summary for the month
+    tbody.innerHTML += `<tr><td colspan="4"><b>Monthly Expenses Summary</b></td></tr>`;
+    if (expenses.length === 0) {
+        tbody.innerHTML += `<tr><td colspan="4"><i>No expenses recorded</i></td></tr>`;
+    } else {
+        expenses.forEach(exp => {
+            tbody.innerHTML += `
+                <tr>
+                    <td></td>
+                    <td>${exp.label}</td>
+                    <td>${exp.from}</td>
+                    <td>₱${parseFloat(exp.amount).toLocaleString()}</td>
+                </tr>`;
+        });
+    }
+
+    // Render overall totals for the month
+    tbody.innerHTML += `
+        <tr style="background:#e9ecef;">
+            <td colspan="3"><b>Total Givings</b></td>
+            <td><b>₱${total_givings.toLocaleString()}</b></td>
+        </tr>
+        <tr style="background:#e9ecef;">
+            <td colspan="3"><b>Total Expenses</b></td>
+            <td><b>₱${total_expenses.toLocaleString()}</b></td>
+        </tr>
+        <tr style="background:#d4edda;">
+            <td colspan="3"><b>Cash on Hand</b></td>
+            <td><b>₱${cashOnHand.toLocaleString()}</b></td>
+        </tr>
+    `;
 }
 
 function closeSummaryModal() {
     const summaryModal = document.getElementById("summary-modal");
     const closeSummaryModalBtn = document.getElementById("close-summary-modal");
-
     closeSummaryModalBtn.addEventListener("click", () => {
         summaryModal.style.display = "none";
     });
@@ -902,7 +942,6 @@ function closeSummaryModal() {
             summaryModal.style.display = "none";
         }
     });
-
 }
 
 function updateCashOnHand() {
